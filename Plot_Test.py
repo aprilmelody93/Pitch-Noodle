@@ -38,7 +38,7 @@ while True:
     #pitch = int(round(pitch))
     confidence = pitch_o.get_confidence()
     if confidence < 0.8: pitch = 0.
-    print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
+    # print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
     pitches += [pitch]
     confidences += [confidence]
     total_frames += read
@@ -58,15 +58,17 @@ pitches = array(pitches[skip:])
 confidences = array(confidences[skip:])
 times = [t * hop_s for t in range(len(pitches))]
 
+print(times)
+
 # plot cleaned up pitches
 cleaned_pitches = pitches
 cleaned_pitches = ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches)
 
 
-plt.plot(times, cleaned_pitches)
-plt.xlabel('Time (ms)')
+plt.plot(times, cleaned_pitches, linewidth=2.0)
+plt.xlabel('Time(ms)')
 plt.ylabel('Pitch (Hz)')
-plt.title('Pitch contour of native speaker')
+plt.title('Pitch contour of audio file')
 plt.show()
 
 
