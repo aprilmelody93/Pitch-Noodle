@@ -62,6 +62,8 @@ print(times)
 
 # plot cleaned up pitches
 cleaned_pitches = pitches
+
+# do not plot pitch == 0 Hz
 cleaned_pitches = ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches)
 
 
