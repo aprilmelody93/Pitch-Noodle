@@ -48,7 +48,10 @@ if 0: sys.exit(0)
 
 #print pitches
 from numpy import array, ma
+import matplotlib
 import matplotlib.pyplot as plt
+import time
+import matplotlib.dates as mdates
 
 plt.style.use('seaborn-pastel')
 
@@ -56,16 +59,16 @@ skip = 1
 
 pitches = array(pitches[skip:])
 confidences = array(confidences[skip:])
-times = [t * hop_s for t in range(len(pitches))]
-
-print(times)
+times = [(t * hop_s) / 1000 for t in range(len(pitches))]
 
 # plot cleaned up pitches
 cleaned_pitches = pitches
 
 # do not plot pitch == 0 Hz
 cleaned_pitches = ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches)
-
+# fig, ax = plt.subplots()
+# formatter = matplotlib.ticker.FuncFormatter(lambda ms, x: time.strftime('%S%f', time.gmtime(ms // 1000)))
+# ax.xaxis.set_major_formatter(formatter)
 
 plt.plot(times, cleaned_pitches, linewidth=2.0)
 plt.xlabel('Time(ms)')
