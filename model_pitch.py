@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import sys
 from aubio import source, pitch
 
@@ -46,31 +44,22 @@ while True:
 
 if 0: sys.exit(0)
 
-#print pitches
+# Prep for plotting
 from numpy import array, ma
 import matplotlib.pyplot as plt
 
-plt.style.use('seaborn-pastel')
-
 skip = 1
-
 pitches = array(pitches[skip:])
 confidences = array(confidences[skip:])
 times = [(t * hop_s) / 1000 for t in range(len(pitches))]
+cleaned_pitches = pitches   # plot cleaned up pitches
+cleaned_pitches = ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches) # do not plot pitch == 0 Hz
 
-# plot cleaned up pitches
-cleaned_pitches = pitches
-
-# do not plot pitch == 0 Hz
-cleaned_pitches = ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches)
-# fig, ax = plt.subplots()
-# formatter = matplotlib.ticker.FuncFormatter(lambda ms, x: time.strftime('%S%f', time.gmtime(ms // 1000)))
-# ax.xaxis.set_major_formatter(formatter)
-
+# plot pitch
+plt.style.use('seaborn-pastel')
 plt.plot(times, cleaned_pitches, linewidth=2.0)
 plt.xlabel('Time(ms)')
 plt.ylabel('Pitch (Hz)')
-plt.title('Pitch contour of audio file')
+plt.title('Pitch contour comparison')
+
 plt.show()
-
-
