@@ -1,5 +1,5 @@
 import sys
-from aubio import source, pitch
+from aubio import source, pitch, onset
 
 # if len(sys.argv) < 2:
 #     print("Usage: %s <filename> [samplerate]" % sys.argv[0])
@@ -7,17 +7,17 @@ from aubio import source, pitch
 
 from glob import glob
 print(glob("*"))
-filename = r"model.wav"
+filename = r"april_model.wav"
 
 downsample = 1
 samplerate = 44100 // downsample
-# if len( sys.argv ) > 2: samplerate = int(sys.argv[2])
-
 win_s = 4096 // downsample # fft size
 hop_s = 512  // downsample # hop size
 
 s = source(filename, samplerate, hop_s)
 samplerate = s.samplerate
+
+o = onset("default", win_s, hop_s, samplerate)
 
 tolerance = 0.8
 
@@ -27,13 +27,13 @@ pitch_o.set_tolerance(tolerance)
 
 pitches = []
 confidences = []
+onsets = []
 
 # total number of frames read
 total_frames = 0
 while True:
     samples, read = s()
     pitch = pitch_o(samples)[0]
-    #pitch = int(round(pitch))
     confidence = pitch_o.get_confidence()
     if confidence < 0.8: pitch = 0.
     # print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
@@ -62,10 +62,11 @@ mic_pitches = ma.masked_where((mic_pitches <= 0) | (mic_pitches <= tolerance), m
 
 # plot pitch
 plt.style.use('seaborn-pastel')
-plt.plot(times, pitches, linewidth=3.0)
-plt.plot(mic_times, mic_pitches, linewidth=3.0)
+plt.plot(times, pitches, linewidth=2.5, label="model")
+plt.plot(mic_times, mic_pitches, linewidth=2.5, label="mic")
 plt.xlabel('Time(ms)')
 plt.ylabel('Pitch (Hz)')
 plt.title('Pitch contour comparison')
 
+plt.legend()
 plt.show()

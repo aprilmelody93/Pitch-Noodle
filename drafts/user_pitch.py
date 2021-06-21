@@ -7,7 +7,7 @@ from aubio import source, pitch
 
 from glob import glob
 print(glob("*"))
-filename = r"user.wav"
+filename = r"april_mic.wav"
 
 downsample = 1
 samplerate = 44100 // downsample
@@ -19,7 +19,7 @@ hop_s = 512  // downsample # hop size
 s = source(filename, samplerate, hop_s)
 samplerate = s.samplerate
 
-tolerance = 0.8
+tolerance = 1.0
 
 pitch_o = pitch("yin", win_s, hop_s, samplerate)
 pitch_o.set_unit("Hz")
@@ -52,7 +52,7 @@ skip = 1
 pitches = np.array(pitches[skip:])
 confidences = np.array(confidences[skip:])
 times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-pitches = np.ma.masked_where((pitches <= 0) | (pitches <= tolerance), pitches) # do not plot pitch == 0 Hz
+# pitches = np.ma.masked_where((pitches <= 0) | (pitches <= tolerance), pitches) # do not plot pitch == 0 Hz
 
 # cleaned_pitches = pitches   # plot cleaned up pitches
 # cleaned_pitches = np.ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches) # do not plot pitch == 0 Hz
