@@ -7,7 +7,7 @@ from aubio import source, pitch
 
 from glob import glob
 print(glob("*"))
-filename = r"model.wav"
+filename = r"user.wav"
 
 downsample = 1
 samplerate = 44100 // downsample
@@ -45,27 +45,26 @@ while True:
 if 0: sys.exit(0)
 
 # Prep for plotting
-from numpy import array, ma
 import matplotlib.pyplot as plt
 import numpy as np
 
 skip = 1
-pitches = array(pitches[skip:])
-confidences = array(confidences[skip:])
+pitches = np.array(pitches[skip:])
+confidences = np.array(confidences[skip:])
 times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-pitches = ma.masked_where((pitches <= 0) | (pitches <= tolerance), pitches) # do not plot pitch == 0 Hz
+pitches = np.ma.masked_where((pitches <= 0) | (pitches <= tolerance), pitches) # do not plot pitch == 0 Hz
 
-# Load mic_pitches and remove silences
-mic_pitches = np.load("mic_pitches.npy")
-mic_times = np.load("mic_times.npy")
-mic_pitches = ma.masked_where((mic_pitches <= 0) | (mic_pitches <= tolerance), mic_pitches) # do not plot pitch == 0 Hz
+# cleaned_pitches = pitches   # plot cleaned up pitches
+# cleaned_pitches = np.ma.masked_where((cleaned_pitches <= 0) | (cleaned_pitches <= tolerance), cleaned_pitches) # do not plot pitch == 0 Hz
 
-# plot pitch
-plt.style.use('seaborn-pastel')
-plt.plot(times, pitches, linewidth=3.0)
-plt.plot(mic_times, mic_pitches, linewidth=3.0)
-plt.xlabel('Time(ms)')
-plt.ylabel('Pitch (Hz)')
-plt.title('Pitch contour comparison')
+np.save("User_pitches.npy", pitches)
+np.save("User_times.npy", times)
 
-plt.show()
+# # plot pitch
+# plt.style.use('seaborn-pastel')
+# plt.plot(times, cleaned_pitches, linewidth=2.0)
+# plt.xlabel('Time(ms)')
+# plt.ylabel('Pitch (Hz)')
+# plt.title('Pitch contour comparison')
+
+# plt.show()

@@ -6,7 +6,7 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 2
 RATE = 44100
 RECORD_SECONDS = 2
-WAVE_OUTPUT_FILENAME = "output.wav"
+WAVE_OUTPUT_FILENAME = "mic_output.wav"
 
 p = pyaudio.PyAudio()
 
@@ -16,7 +16,7 @@ stream = p.open(format=FORMAT,
                 input=True,
                 frames_per_buffer=CHUNK)
 
-print("* recording")
+print("* recording 2 seconds...")
 
 frames = []
 
@@ -67,7 +67,6 @@ total_frames = 0
 while True:
     samples, read = s()
     pitch = pitch_o(samples)[0]
-    #pitch = int(round(pitch))
     confidence = pitch_o.get_confidence()
     if confidence < 0.8: pitch = 0.
     # print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
@@ -79,27 +78,12 @@ while True:
 if 0: sys.exit(0)
 
 # Prep for plotting
-from numpy import array, ma
 import numpy as np
-from model_pitch import cleaned_pitches
 
 skip = 1
+mic_pitches = np.array(mic_pitches[skip:])
+mic_confidences = np.array(mic_confidences[skip:])
+times = [(t * hop_s) / 1000 for t in range(len(mic_pitches))]
 
-mic_pitches = array(mic_pitches[skip:])
-mic_confidences = array(mic_confidences[skip:])
-
-
-# plot cleaned up pitches
-cleaned_mp = mic_pitches
-
-# arange 
-# linspace 
-
-
-# do not plot pitch == 0 Hz
-cleaned_mp = ma.masked_where((cleaned_mp <= 0) | (cleaned_mp <= tolerance), cleaned_mp)
-
-# # pad array so same size
-# pad_mic = np.zeros(cleaned_pitches.shape)
-# pad_mic[:cleaned_mp.shape[0], :cleaned_mp.shape[1]] = cleaned_mp
-# print(pad_mic)
+np.save("mic_pitches.npy", mic_pitches)
+np.save("mic_times.npy", times)
