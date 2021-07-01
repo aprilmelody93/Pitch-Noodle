@@ -61,23 +61,23 @@ mic_times = np.load("mic_times.npy")
 mic_pitches = ma.masked_where((mic_pitches <= 0) | (mic_pitches <= tolerance), mic_pitches) # do not plot pitch == 0 Hz
 
 # plot pitch
-plt.style.use('seaborn-pastel')
-plt.plot(times, pitches, linewidth=2.0, label="model")
-plt.plot(mic_times, mic_pitches, linewidth=2.0, label="mic")
-plt.xlabel('Time(ms)')
-plt.ylabel('Pitch (Hz)')
-plt.title('Pitch contour comparison')
+# plt.style.use('seaborn-pastel')
+# plt.plot(times, pitches, linewidth=2.0, label="model")
+# plt.plot(mic_times, mic_pitches, linewidth=2.0, label="mic")
+# plt.xlabel('Time(ms)')
+# plt.ylabel('Pitch (Hz)')
+# plt.title('Pitch contour comparison')
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
 # run dynamic time warping (DTW)
 import numpy as np
 import matplotlib.pyplot as plt
 import dtwalign
 
-np.seterr(divide = 'ignore') 
-np.seterr(invalid = 'ignore') 
+# np.seterr(divide = 'ignore') 
+# np.seterr(invalid = 'ignore') 
 res = dtwalign.dtw(pitches, mic_pitches)
 
 # dtw distance
@@ -86,7 +86,7 @@ print("dtw normalized distance: {}".format(res.normalized_distance))
 
 # warp mic_pitches to pitches
 mic_pitches_warping_path = res.get_warping_path(target="reference")
-plt.plot(pitches,label="pitches")
-plt.plot(mic_pitches[mic_pitches_warping_path],label="mic_pitches")
+plt.plot(pitches, linewidth=2.0, label="pitches")
+plt.plot(mic_pitches[mic_pitches_warping_path], linewidth=2.0, label="mic_pitches")
 plt.legend()
 plt.show()

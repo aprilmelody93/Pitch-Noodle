@@ -43,7 +43,7 @@ from aubio import source, pitch
 from glob import glob
 
 print(glob("*"))
-filename = r"output.wav"
+filename = r"mic_output.wav"
 
 downsample = 1
 samplerate = 44100 // downsample
