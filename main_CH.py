@@ -4,7 +4,7 @@ import wave
 import aubio
 import numpy as np
 
-def get_pitches(filename, downsample=1, samplerate=44100, win_s=4096, hop_s=512, 
+def get_pitches(filename, downsample=1, samplerate=22050, win_s=4096, hop_s=512, 
                  min_confidence=0.8, # discard pitches lower than this (what's the range? 0-1? 0-100?)
                  tolerance=0.8,# not clear what tolerance means ...
                 method="yin"): #  yinfft, yin, yinfast, fcomb, mcomb, schmitt, specacf
