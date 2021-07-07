@@ -48,6 +48,9 @@ import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 from math import sin
 
+def dtw(sender, data):
+    print("Button clicked")
+
 set_primary_window(540, 720)
 set_global_font_scale(1.25)
 
@@ -61,7 +64,7 @@ def update_plot_data(sender, app_data, user_data):
     plot_data.append(sin(mouse_y/30))
     dpg.set_value(plot, plot_data)
 
-data=[]
+    
 
 with dpg.font_registry():
     
@@ -76,9 +79,7 @@ with dpg.window(label="Intonation Learner", width=540, height=677):
     print("GUI is running..")
     dpg.set_viewport_always_top("Intonation Learner")
     dpg.add_simple_plot(label="Simpleplot1", default_value=(0.3, 0.9, 0.5, 0.3), height=300)
-    plot = dpg.add_simple_plot(label="Simpleplot2", default_value=(0.3, 0.9, 2.5, 8.9), overlay="Overlaying", height=180, histogram=True)
-
-with dpg.handler_registry():
-    dpg.add_mouse_move_handler(callback=update_plot_data, user_data=(plot, data))
+    dpg.add_simple_plot(label="Simpleplot2", default_value=(0.3, 0.9, 2.5, 8.9), overlay="Overlaying", height=180, histogram=True)
+    dpg.add_button(label="Stop Recording", callback=dtw)
 
 dpg.start_dearpygui()
