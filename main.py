@@ -64,8 +64,8 @@ def Record(sender, data):
     print("Record Button clicked")
 
 with dpg.font_registry():
-    dpg.add_font("Arial.ttf", 20, default_font=True)
-    secondary_font = dpg.add_font("CAMBRIAZ.TTF", 13)
+    dpg.add_font("AGaramondPro-Bold.otf", 20, default_font=True)
+    secondary_font = dpg.add_font("Arial.ttf", 13)
 
 
     # def plot_callback(sender, data):
@@ -81,7 +81,7 @@ with dpg.window():
         dpg.fit_axis_data(x_axis)
         dpg.fit_axis_data(y_axis)
         dpg.add_line_series(m_times, m_pitches, parent=dpg.last_item())
-        dpg.add_line_series(r_times, r_pitches[r_pitches_warping_path], parent=y_axis)
+        dpg.add_line_series(r_times, r_pitches[r_pitches_warping_path], parent=yaxis)
         # add_button(label="Plot data", callback=plot_callback)
 
 
