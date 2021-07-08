@@ -49,33 +49,43 @@ r_pitches_warping_path = res.get_warping_path(target="reference")
 from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
 from dearpygui.core import *
-from math import sin
+from playsound import playsound
 
 dpg.enable_docking()
 dpg.setup_viewport()
 dpg.set_viewport_title(title='Welcome')
-dpg.set_viewport_width(1500)
+dpg.set_viewport_width(1600)
 dpg.set_viewport_height(900)
 
 xaxis = dpg.generate_uuid()
 yaxis = dpg.generate_uuid()
 
-def Record(sender, data):
-    print("Record Button clicked")
+def play_model(sender, data):
+    playsound('Karen_44100.wav')
+
+def open_file(sender, data):
+    dpg.open_file_dialog()
+    
+def select_directory(sender, data):
+    dpg.select_directory_dialog()
 
 with dpg.font_registry():
     dpg.add_font("AGaramondPro-Bold.otf", 20, default_font=True)
     secondary_font = dpg.add_font("Arial.ttf", 13)
 
+with dpg.theme(default_theme=True) as series_theme:
+    dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 140, 23), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
 
-    # def plot_callback(sender, data):
-#     add_plot_axis(mvXAxis, label="x")
-#     add_plot_axis(mvYAxis, label="y")
-#     add_line_series(m_times, m_pitches, weight=2, color=[0, 0, 255, 100], parent=last_item())
-#     add_shade_series(r_times, r_pitches[r_pitches_warping_path], weight=2, fill=[255, 0, 0, 100])
 
 with dpg.window():
+
+    dpg.add_button(label="Play File", callback = play_model)
+    dpg.add_button(label='Open File', callback=open_file)
+    dpg.add_button(label='Select Directory', callback=select_directory)
+
     with dpg.plot(label="Intonation Plot", height=700, width=1400):
+
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
 
@@ -83,17 +93,11 @@ with dpg.window():
         dpg.fit_axis_data(y_axis)
 
         m_pitches_list = m_pitches.tolist(fill_value=0)
-        #print(len(m_pitches_list))
-        #print(len(m_times))
         dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
 
         r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
-        #print(len(r_pitches_list))
-        print(len(r_times))
-        r_times_short = r_times[0:859]
-        print(len(r_times_short))
+        len_m = len(m_pitches_list)
+        r_times_short = r_times[0:len_m] # Resize because array size has to be the same
         dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
-        # add_button(label="Plot data", callback=plot_callback)
-
 
 dpg.start_dearpygui()
