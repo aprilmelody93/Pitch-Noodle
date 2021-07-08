@@ -73,23 +73,29 @@ with dpg.theme(default_theme=True) as series_theme:
 def play_model(sender, data):
     playsound('Karen_44100.wav')
 
-def open_file(sender, data):
-    dpg.open_file_dialog()
+# def upload_file(sender, data):
+#     dpg.add_file_dialog(callback=selected_file)
     
 def select_directory(sender, data):
     dpg.select_directory_dialog()
+
+def selected_file(sender, app_data, user_data):
+    print("Sender: ", sender)
+    print("App Data:", app_data)
 
 xaxis = dpg.generate_uuid()
 yaxis = dpg.generate_uuid()
 
 ###### GUI for user nav bar ######
 
+with dpg.file_dialog(directory_selector=False, show= False, callback=selected_file) as file_dialog_id:
+    dpg.add_file_extension(".*")
+
 with dpg.window(label="User NavBar", width=300, height=900, pos=[0,0]) as user_nav_bar:
     dpg.add_text("Welcome!")
     instructions = dpg.add_text("To start, please upload an audio file.")
-    # dpg.add_button(label="Play File", callback = play_model)
-    upload_button = dpg.add_button(label='Upload File', callback=open_file)
-    # dpg.add_button(label='Select Directory', callback=select_directory)
+    upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
+    # dpg.add_button(label="Play File", callback = play_model)   
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
