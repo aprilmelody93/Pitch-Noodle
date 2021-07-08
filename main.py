@@ -76,12 +76,17 @@ with dpg.font_registry():
 
 with dpg.window():
     with dpg.plot(label="Intonation Plot", height=700, width=1400):
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x", id=xaxis)
-        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y", id=yaxis)
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
+
         dpg.fit_axis_data(x_axis)
         dpg.fit_axis_data(y_axis)
-        dpg.add_line_series(m_times, m_pitches, parent=dpg.last_item())
-        dpg.add_line_series(r_times, r_pitches[r_pitches_warping_path], parent=yaxis)
+
+        m_pitches_list = m_pitches.tolist(fill_value=0)
+        dpg.add_line_series(m_times, m_pitches, parent=y_axis)
+
+        r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
+        dpg.add_line_series(r_times, r_pitches_list, parent=y_axis)
         # add_button(label="Plot data", callback=plot_callback)
 
 
