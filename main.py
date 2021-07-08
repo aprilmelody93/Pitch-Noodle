@@ -7,34 +7,36 @@ import dtwalign
 
 # Read in recorded wav file
 
-# filename1 = "Karen_44100.wav"
-# filename2 = "Daniel.wav"
+filename1 = "Karen_44100.wav"
+filename2 = "Daniel.wav"
+hop_s = 512
+
+signal = basic.SignalObj(filename1)
+pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
+pitches = pitches.samp_values
+start = np.argmax(pitches > 0) # find index of first >0 sample
+pitches = pitches[start:] # remove anything before that index
+m_pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
+m_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
+
+signal = basic.SignalObj(filename2)
+pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
+pitches = pitches.samp_values
+start = np.argmax(pitches > 0)
+pitches = pitches[start:]
+r_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
+r_pitches = np.ma.masked_where(pitches <= 0, pitches)
 
 
-# signal = basic.SignalObj(filename1)
-# pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-# pitches = pitches.samp_values
-# start = np.argmax(pitches > 0) # find index of first >0 sample
-# pitches = pitches[start:] # remove anything before that index
-# m_pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
+plt.figure(figsize=(25, 3))
+res = dtwalign.dtw(m_pitches, r_pitches, step_pattern="symmetricP2")
 
-# signal = basic.SignalObj(filename2)
-# pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-# pitches = pitches.samp_values
-# start = np.argmax(pitches > 0)
-# pitches = pitches[start:]
-# r_pitches = np.ma.masked_where(pitches <= 0, pitches)
-
-
-# plt.figure(figsize=(25, 3))
-# res = dtwalign.dtw(m_pitches, r_pitches, step_pattern="symmetricP2")
-
-# # dtw distance
-# print("dtw distance: {}".format(res.distance))
-# print("dtw normalized distance: {}".format(res.normalized_distance))
+# dtw distance
+print("dtw distance: {}".format(res.distance))
+print("dtw normalized distance: {}".format(res.normalized_distance))
 
 # # warp r_pitches to m_pitches
-# r_pitches_warping_path = res.get_warping_path(target="reference")
+r_pitches_warping_path = res.get_warping_path(target="reference")
 # plt.xlabel('time (ms)', fontsize=18)
 # plt.ylabel('pitch (Hz)', fontsize=18)
 # plt.plot(m_pitches, linewidth=2.5, label="Model")
@@ -42,44 +44,45 @@ import dtwalign
 # plt.legend()
 # plt.show()
 
-# DearPyGUI Imports
+###############################   GUI   #########################################
 
+from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 from math import sin
 
-def dtw(sender, data):
-    print("Button clicked")
+dpg.enable_docking()
+dpg.setup_viewport()
+dpg.set_viewport_title(title='Welcome')
+dpg.set_viewport_width(1500)
+dpg.set_viewport_height(900)
 
-set_primary_window(540, 720)
-set_global_font_scale(1.25)
+xaxis = dpg.generate_uuid()
+yaxis = dpg.generate_uuid()
 
-
-def update_plot_data(sender, app_data, user_data):
-    mouse_y = app_data[1]
-    plot = user_data[0]
-    plot_data = user_data[1]
-    if len(plot_data) > 100:
-        plot_data.pop(0)
-    plot_data.append(sin(mouse_y/30))
-    dpg.set_value(plot, plot_data)
-
-    
+def Record(sender, data):
+    print("Record Button clicked")
 
 with dpg.font_registry():
-    
-    # add font (set as default for entire app)
     dpg.add_font("Arial.ttf", 20, default_font=True)
-
-    # add second font
     secondary_font = dpg.add_font("CAMBRIAZ.TTF", 13)
 
 
-with dpg.window(label="Intonation Learner", width=540, height=677):
-    print("GUI is running..")
-    dpg.set_viewport_always_top("Intonation Learner")
-    dpg.add_simple_plot(label="Simpleplot1", default_value=(0.3, 0.9, 0.5, 0.3), height=300)
-    dpg.add_simple_plot(label="Simpleplot2", default_value=(0.3, 0.9, 2.5, 8.9), overlay="Overlaying", height=180, histogram=True)
-    dpg.add_button(label="Stop Recording", callback=dtw)
+    # def plot_callback(sender, data):
+#     add_plot_axis(mvXAxis, label="x")
+#     add_plot_axis(mvYAxis, label="y")
+#     add_line_series(m_times, m_pitches, weight=2, color=[0, 0, 255, 100], parent=last_item())
+#     add_shade_series(r_times, r_pitches[r_pitches_warping_path], weight=2, fill=[255, 0, 0, 100])
+
+with dpg.window():
+    with dpg.plot(label="Intonation Plot", height=700, width=1400):
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x", id=xaxis)
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y", id=yaxis)
+        dpg.fit_axis_data(x_axis)
+        dpg.fit_axis_data(y_axis)
+        dpg.add_line_series(m_times, m_pitches, parent=dpg.last_item())
+        dpg.add_line_series(r_times, r_pitches[r_pitches_warping_path], parent=y_axis)
+        # add_button(label="Plot data", callback=plot_callback)
+
 
 dpg.start_dearpygui()

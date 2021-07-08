@@ -2,6 +2,8 @@ import dearpygui.dearpygui as dpg
 from dearpygui.demo import *
 from dearpygui.core import *
 
+
+
 # add a font registry
 with dpg.font_registry():
     
