@@ -60,12 +60,12 @@ dpg.set_viewport_width(1600)
 dpg.set_viewport_height(900)
 
 with dpg.font_registry():
-    dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 30, default_font=True)
-    secondary_font = dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 22)
+    dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 22, default_font=True)
+    secondary_font = dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 30)
 
 with dpg.theme(default_theme=True) as series_theme:
-    dpg.add_theme_color(dpg.mvThemeCol_Button, (207, 238, 250), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (137, 207, 240), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
 
 ##### Required functions ######
@@ -73,50 +73,40 @@ with dpg.theme(default_theme=True) as series_theme:
 def play_model(sender, data):
     playsound('Karen_44100.wav')
 
-# def upload_file(sender, data):
-#     dpg.add_file_dialog(callback=selected_file)
-    
-def select_directory(sender, data):
-    dpg.select_directory_dialog()
-
 def selected_file(sender, app_data, user_data):
     print("Sender: ", sender)
     print("App Data:", app_data)
+    dpg.configure_item("Upload File", add_text(app_data))
 
 xaxis = dpg.generate_uuid()
 yaxis = dpg.generate_uuid()
 
 ###### GUI for user nav bar ######
 
-with dpg.file_dialog(directory_selector=False, show= False, callback=selected_file) as file_dialog_id:
+with dpg.file_dialog(directory_selector=False, show = False, callback=selected_file) as file_dialog_id:
     dpg.add_file_extension(".*")
 
-with dpg.window(label="User NavBar", width=300, height=900, pos=[0,0]) as user_nav_bar:
-    dpg.add_text("Welcome!")
+with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
+    welcome = dpg.add_text("Welcome!")
     instructions = dpg.add_text("To start, please upload an audio file.")
+    dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
     # dpg.add_button(label="Play File", callback = play_model)   
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (137, 207, 240), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (62, 146, 204), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (62, 146, 204), category=dpg.mvThemeCat_Core)
         dpg.add_theme_color(dpg.mvThemeCol_Text, (0, 0, 0), category=dpg.mvThemeCat_Core)
             
-
     dpg.set_item_theme(user_nav_bar, theme_id)
-    dpg.set_item_font(instructions, secondary_font)
-    dpg.set_item_font(upload_button, secondary_font)
+    dpg.set_item_font(welcome, secondary_font)
 
 ###### GUI for plot ######
 
-with dpg.window(label="Plot", width=1300, height=900, pos=[301,0]):
+with dpg.window(label="Pitch Plot", width=1300, height=900, pos=[300,0]) as plot_window:
 
-    # dpg.add_button(label="Play File", callback = play_model)
-    # dpg.add_button(label='Open File', callback=open_file)
-    # dpg.add_button(label='Select Directory', callback=select_directory)
-
-    with dpg.plot(label="Intonation Plot", height=700, width=1300):
-
+    with dpg.plot(label="Intonation Plot", height=700, width=1250):
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
 
@@ -130,5 +120,11 @@ with dpg.window(label="Plot", width=1300, height=900, pos=[301,0]):
         len_m = len(m_pitches_list)
         r_times_short = r_times[0:len_m] # Resize because array size has to be the same
         dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
+
+    with dpg.theme() as theme_plot:
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (28, 93, 153), category=dpg.mvThemeCat_Core)
+            
+    dpg.set_item_theme(plot_window, theme_plot)
 
 dpg.start_dearpygui()
