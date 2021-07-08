@@ -83,10 +83,16 @@ with dpg.window():
         dpg.fit_axis_data(y_axis)
 
         m_pitches_list = m_pitches.tolist(fill_value=0)
-        dpg.add_line_series(m_times, m_pitches, parent=y_axis)
+        #print(len(m_pitches_list))
+        #print(len(m_times))
+        dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
 
         r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
-        dpg.add_line_series(r_times, r_pitches_list, parent=y_axis)
+        #print(len(r_pitches_list))
+        print(len(r_times))
+        r_times_short = r_times[0:859]
+        print(len(r_times_short))
+        dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
         # add_button(label="Plot data", callback=plot_callback)
 
 
