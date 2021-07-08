@@ -51,14 +51,24 @@ import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 from playsound import playsound
 
+##### Global theme and setup #####
+
 dpg.enable_docking()
 dpg.setup_viewport()
 dpg.set_viewport_title(title='Welcome')
 dpg.set_viewport_width(1600)
 dpg.set_viewport_height(900)
 
-xaxis = dpg.generate_uuid()
-yaxis = dpg.generate_uuid()
+with dpg.font_registry():
+    dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 30, default_font=True)
+    secondary_font = dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 22)
+
+with dpg.theme(default_theme=True) as series_theme:
+    dpg.add_theme_color(dpg.mvThemeCol_Button, (207, 238, 250), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (137, 207, 240), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
+
+##### Required functions ######
 
 def play_model(sender, data):
     playsound('Karen_44100.wav')
@@ -69,22 +79,37 @@ def open_file(sender, data):
 def select_directory(sender, data):
     dpg.select_directory_dialog()
 
-with dpg.font_registry():
-    dpg.add_font("AGaramondPro-Bold.otf", 20, default_font=True)
-    secondary_font = dpg.add_font("Arial.ttf", 13)
+xaxis = dpg.generate_uuid()
+yaxis = dpg.generate_uuid()
 
-with dpg.theme(default_theme=True) as series_theme:
-    dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 140, 23), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
+###### GUI for user nav bar ######
 
+with dpg.window(label="User NavBar", width=300, height=900, pos=[0,0]) as user_nav_bar:
+    dpg.add_text("Welcome!")
+    instructions = dpg.add_text("To start, please upload an audio file.")
+    # dpg.add_button(label="Play File", callback = play_model)
+    upload_button = dpg.add_button(label='Upload File', callback=open_file)
+    # dpg.add_button(label='Select Directory', callback=select_directory)
 
-with dpg.window():
+    with dpg.theme() as theme_id:
+        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (137, 207, 240), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_Text, (0, 0, 0), category=dpg.mvThemeCat_Core)
+            
 
-    dpg.add_button(label="Play File", callback = play_model)
-    dpg.add_button(label='Open File', callback=open_file)
-    dpg.add_button(label='Select Directory', callback=select_directory)
+    dpg.set_item_theme(user_nav_bar, theme_id)
+    dpg.set_item_font(instructions, secondary_font)
+    dpg.set_item_font(upload_button, secondary_font)
 
-    with dpg.plot(label="Intonation Plot", height=700, width=1400):
+###### GUI for plot ######
+
+with dpg.window(label="Plot", width=1300, height=900, pos=[301,0]):
+
+    # dpg.add_button(label="Play File", callback = play_model)
+    # dpg.add_button(label='Open File', callback=open_file)
+    # dpg.add_button(label='Select Directory', callback=select_directory)
+
+    with dpg.plot(label="Intonation Plot", height=700, width=1300):
 
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
