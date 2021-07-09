@@ -78,8 +78,18 @@ def selected_file(sender, app_data, user_data):
     model_file = app_data["file_name_buffer"]
     print(model_file)
 
-xaxis = dpg.generate_uuid()
-yaxis = dpg.generate_uuid()
+def plot_model(sender, data):
+    xaxis = dpg.generate_uuid()
+    yaxis = dpg.generate_uuid()
+
+    dpg.fit_axis_data(x_axis)
+    dpg.fit_axis_data(y_axis)
+
+    m_pitches_list = m_pitches.tolist(fill_value=0)
+    dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
+
+def record_mic(sender, data):
+    
 
 ###### GUI for user nav bar ######
 
@@ -92,9 +102,16 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
     dpg.add_spacing(count = 5)
-    dpg.add_button(label="Play!", callback = play_model)   
+    dpg.add_button(label="Play file", callback = play_model)   
     dpg.add_same_line()
-    dpg.add_button(label="Plot!")
+    dpg.add_button(label="Plot pitch", callback=plot_model)
+    dpg.add_spacing(count=10)
+    record = dpg.add_text("Your Input")
+    record_instructions = dpg.add_text("Click on the Record button to start,")
+    record_instructions2 = dpg.add_text("and the stop button to stop.")
+    dpg.add_button(label="Record", callback = record_mic)
+    dpg.add_same_line()
+    dpg.add_button(label="Stop", callback = stop_mic)
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
@@ -113,16 +130,16 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
 
-        dpg.fit_axis_data(x_axis)
-        dpg.fit_axis_data(y_axis)
+        # dpg.fit_axis_data(x_axis)
+        # dpg.fit_axis_data(y_axis)
 
-        m_pitches_list = m_pitches.tolist(fill_value=0)
-        dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
+        # m_pitches_list = m_pitches.tolist(fill_value=0)
+        # dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
 
-        r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
-        len_m = len(m_pitches_list)
-        r_times_short = r_times[0:len_m] # Resize because array size has to be the same
-        dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
+        # r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
+        # len_m = len(m_pitches_list)
+        # r_times_short = r_times[0:len_m] # Resize because array size has to be the same
+        # dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
 
     with dpg.theme() as theme_plot:
         dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
