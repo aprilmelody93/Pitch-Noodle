@@ -50,6 +50,7 @@ from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 from playsound import playsound
+from audioplayer import AudioPlayer
 
 ##### Global theme and setup #####
 
@@ -71,12 +72,11 @@ with dpg.theme(default_theme=True) as series_theme:
 ##### Required functions ######
 
 def play_model(sender, data):
-    playsound('Karen_44100.wav')
+    AudioPlayer('Karen_44100.wav').play(block=True)
 
 def selected_file(sender, app_data, user_data):
-    print("Sender: ", sender)
-    print("App Data:", app_data)
-    dpg.configure_item("Upload File", add_text(app_data))
+    model_file = app_data["file_name_buffer"]
+    print(model_file)
 
 xaxis = dpg.generate_uuid()
 yaxis = dpg.generate_uuid()
@@ -91,7 +91,10 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
-    # dpg.add_button(label="Play File", callback = play_model)   
+    dpg.add_spacing(count = 5)
+    dpg.add_button(label="Play!", callback = play_model)   
+    dpg.add_same_line()
+    dpg.add_button(label="Plot!")
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
@@ -104,9 +107,9 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
 ###### GUI for plot ######
 
-with dpg.window(label="Pitch Plot", width=1300, height=900, pos=[300,0]) as plot_window:
+with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
 
-    with dpg.plot(label="Intonation Plot", height=700, width=1250):
+    with dpg.plot(label="Intonation Plot", height=700, width=1200):
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
 

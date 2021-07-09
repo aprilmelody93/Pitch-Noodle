@@ -1,8 +1,14 @@
 import dearpygui.dearpygui as dpg
+import dearpygui.logger as dpg_logger
 
-with dpg.window():
-    item = dpg.add_button(enabled=True, label="Press me")
-    dpg.configure_item(item, enabled=False, label="New Label")
+logger = dpg_logger.mvLogger()
 
-    dpg.get_item_configuration()
-dpg.start_dearpygui()
+dpg.show_documentation()
+dpg.show_style_editor()
+dpg.show_debug()
+dpg.show_about()
+dpg.show_metrics()
+dpg.show_font_manager()
+dpg.show_item_registry()
+
+dpg.start_dearpygui() 
