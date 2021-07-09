@@ -155,19 +155,22 @@ with dpg.file_dialog(directory_selector=False, show = False, callback=selected_f
     dpg.add_file_extension(".*")
 
 with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
-    welcome = dpg.add_text("Welcome!")
+    welcome = dpg.add_text("Model Input")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
     dpg.add_spacing(count = 5)
 
-    dpg.add_button(label="Play file", callback = play_model)   
+    dpg.add_button(label="Play model", callback = play_model)   
     dpg.add_same_line()
-    dpg.add_button(label="Plot pitch", callback=plot_model)
+    dpg.add_button(label="Model pitch", callback=plot_model)
+    dpg.add_spacing(count=10)
+    add_separator()
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
-    dpg.add_button(label="Compare pitch", callback= compare_pitch)
+    dpg.add_button(label="Your pitch", callback= compare_pitch)
+    dpg.add_spacing(count=5)
     record_instructions = dpg.add_text("Click on the Record button to start,")
     record_instructions2 = dpg.add_text("and Ctrl+c to stop. (buttons not working)")
     dpg.add_button(label="Record", callback = record_mic)
@@ -190,9 +193,12 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
 with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
 
+    dpg.add_text("Scroll with your mouse button or click and drag left and right to explore.")
+    add_spacing(count=10)
+
     with dpg.plot(label="Intonation Plot", height=700, width=1200):
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="x")
-        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)")
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)")
 
         # dpg.fit_axis_data(x_axis)
         # dpg.fit_axis_data(y_axis)
