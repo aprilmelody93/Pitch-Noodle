@@ -1,14 +1,12 @@
 import dearpygui.dearpygui as dpg
-import dearpygui.logger as dpg_logger
 
-logger = dpg_logger.mvLogger()
+def button_callback(sender, app_data, user_data):
+    print(f"sender is: {sender}")
+    print(f"app_data is: {app_data}")
+    print(f"user_data is: {user_data}")
 
-dpg.show_documentation()
-dpg.show_style_editor()
-dpg.show_debug()
-dpg.show_about()
-dpg.show_metrics()
-dpg.show_font_manager()
-dpg.show_item_registry()
+with dpg.window(label="Tutorial"):
+
+    dpg.add_button(label="Apply", callback=button_callback, user_data="Some Data")
 
 dpg.start_dearpygui() 
