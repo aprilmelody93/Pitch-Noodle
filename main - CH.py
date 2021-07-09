@@ -55,13 +55,14 @@ import pyaudio
 import aubio
 
 ##### Global theme and setup #####
-
 dpg.enable_docking()
 dpg.setup_viewport()
 dpg.set_viewport_title(title='Welcome')
 dpg.set_viewport_width(1600)
 dpg.set_viewport_height(900)
 dpg.setup_registries()
+
+
 
 with dpg.font_registry():
     dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 22, default_font=True)
@@ -72,28 +73,26 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
 
+with dpg.value_registry():
+    m_pitches = dpg.add_float_vect_value(default_value=[])
+    #dpg.set_value(m_pitches, [1.2, 3.4])
+
 ##### Required functions ######
 
-def play_model(sender, app_data):
-    playsound("Karen.wav")
-    # model_file = app_data["file_name_buffer"]
-    # playsound(model_file)
+def plot_model(sender, app_data, user_data):
 
-def selected_file(sender, app_data, user_data, callback=play_model):
-    model_file = app_data["file_name_buffer"]
-    print(model_file)
+    global model_pitches
 
-
-
-def plot_model(sender, data):
     xaxis = dpg.generate_uuid()
     yaxis = dpg.generate_uuid()
 
     dpg.fit_axis_data(x_axis)
     dpg.fit_axis_data(y_axis)
 
-    m_pitches_list = m_pitches.tolist(fill_value=0)
-    dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
+    print(type(model_pitches), len(model_pitches))
+
+    times = list(range(0, len(model_pitches), 1))
+    dpg.add_line_series(times, model_pitches, parent=y_axis)
 
 
 
@@ -151,24 +150,63 @@ def compare_pitch(sender, data):
     r_times_short = r_times[0:len_m] # Resize because array size has to be the same
     dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
 
+def play_model(sender, app_data):
+
+    global model_file_name
+
+    if model_file_name != None:
+        playsound(model_file_name)
+
+
+# Callbacks
+def upload_file_cb(sender, app_data, user_data):
+
+    global model_pitches, model_file_name
+
+    model_file_name = app_data["file_name_buffer"]
+    #hop_s = 512
+    signal = basic.SignalObj(model_file_name)
+    pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
+    pitches = pitches.samp_values
+    start = np.argmax(pitches > 0) # find index of first >0 sample
+    pitches = pitches[start:] # remove anything before that index
+    pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
+    #m_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
+    model_pitches = pitches.tolist(fill_value=None) # 
+    #playsound(filename)
+
+    # make buttons active
+
+def selected_file(sender, app_data, user_data, callback=play_model):
+    model_file = app_data["file_name_buffer"]
+
+
+    print(model_file)
+
+
+# use add_float_vect_value ?
 
 ###### GUI for user nav bar ######
 
-with dpg.file_dialog(directory_selector=False, show = False, callback=selected_file) as file_dialog_id:
+model_pitches = None # Global var of model pitches as list
+model_file_name = None
+
+with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".*")
+    
 
 with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
     welcome = dpg.add_text("Model Input")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
-    dpg.add_spacing(count = 5)
+    dpg.add_spacing(count=5)
 
-    dpg.add_button(label="Play model", callback = play_model)   
+    play_model_button_id = dpg.add_button(label="Play model", callback=play_model)   
     dpg.add_same_line()
-    dpg.add_button(label="Model pitch", callback=plot_model)
+    dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model)
     dpg.add_spacing(count=10)
-    add_separator()
+    dpg.add_separator()  # CH fix
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
@@ -197,7 +235,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
 
     dpg.add_text("Scroll with your mouse button or click and drag left and right to explore.")
-    add_spacing(count=10)
+    dpg.add_spacing(count=10)
 
     with dpg.plot(label="Intonation Plot", height=700, width=1200):
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)")
