@@ -54,6 +54,12 @@ from playsound import playsound
 import pyaudio
 import aubio
 
+
+import debugpy
+debugpy.connect(('localhost',5678))
+
+
+
 ##### Global theme and setup #####
 dpg.enable_docking()
 dpg.setup_viewport()
@@ -161,8 +167,10 @@ def play_model(sender, app_data):
 # Callbacks
 def upload_file_cb(sender, app_data, user_data):
 
+    
     global model_pitches, model_file_name
 
+    debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
     model_file_name = app_data["file_name_buffer"]
     #hop_s = 512
     signal = basic.SignalObj(model_file_name)
