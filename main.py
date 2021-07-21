@@ -89,7 +89,7 @@ def plot_model(sender, data):
     dpg.fit_axis_data(x_axis)
     dpg.fit_axis_data(y_axis)
 
-    m_pitches_list = m_pitches.tolist(fill_value=0)
+    m_pitches_list = m_pitches.tolist(fill_value=None)
     dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
 
 
@@ -143,7 +143,7 @@ def record_mic(sender, data):
 
 def compare_pitch(sender, data):
     m_pitches_list = m_pitches.tolist(fill_value=0)
-    r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
+    r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=None)
     len_m = len(m_pitches_list)
     r_times_short = r_times[0:len_m] # Resize because array size has to be the same
     dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
