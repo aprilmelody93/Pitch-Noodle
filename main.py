@@ -71,7 +71,7 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
 
-##### Required functions ######
+##### Callbacks ######
 
 def play_model(sender, app_data):
     playsound("Karen.wav")

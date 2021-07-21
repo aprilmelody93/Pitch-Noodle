@@ -55,8 +55,8 @@ import pyaudio
 import aubio
 
 
-import debugpy
-debugpy.connect(('localhost',5678))
+# import debugpy
+# debugpy.connect(('localhost',5678))
 
 
 
@@ -106,6 +106,8 @@ def record_mic(sender, data):
     p = pyaudio.PyAudio()
     stream = []
 
+    global stream_open
+    
     # open stream
     buffer_size = 1024
     pyaudio_format = pyaudio.paFloat32
@@ -125,29 +127,42 @@ def record_mic(sender, data):
     pitch_o.set_unit("midi")
     pitch_o.set_tolerance(tolerance)
 
-
-    while True:
-        try:
-            audiobuffer = stream.read(buffer_size)
-            signal = np.fromstring(audiobuffer, dtype=np.float32)
-
-            pitch = pitch_o(signal)[0]
-            confidence = pitch_o.get_confidence()
-
-            print("{} / {}".format(pitch,confidence))
-
-        except KeyboardInterrupt:
-            print("*** Ctrl+C pressed, exiting")
-            break
+    stream_open = True
+    while stream_open == True:
+        audiobuffer = stream.read(buffer_size)
+        signal = np.fromstring(audiobuffer, dtype=np.float32)
+        pitch = pitch_o(signal)[0]
+        confidence = pitch_o.get_confidence()
+        print("{} / {}".format(pitch,confidence))
 
     stream.stop_stream()
     stream.close()
     p.terminate()
 
-# def stop_mic(sender, data):
-#     stream.stop_stream()
-#     stream.close()
-#     p.terminate()
+def stop_mic(sender, data):
+    global stream_open
+    stream_open = False
+
+
+
+    # while True:
+    #     try:
+    #         audiobuffer = stream.read(buffer_size)
+    #         signal = np.fromstring(audiobuffer, dtype=np.float32)
+
+    #         pitch = pitch_o(signal)[0]
+    #         confidence = pitch_o.get_confidence()
+
+    #         print("{} / {}".format(pitch,confidence))
+
+    #     except KeyboardInterrupt:
+    #         print("*** Ctrl+C pressed, exiting")
+    #         break
+
+    # stream.stop_stream()
+    # stream.close()
+    # p.terminate()
+
 
 def compare_pitch(sender, data):
     m_pitches_list = m_pitches.tolist(fill_value=0)
@@ -170,7 +185,7 @@ def upload_file_cb(sender, app_data, user_data):
     
     global model_pitches, model_file_name
 
-    debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
+    # debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
     model_file_name = app_data["file_name_buffer"]
     #hop_s = 512
     signal = basic.SignalObj(model_file_name)
@@ -192,12 +207,13 @@ def selected_file(sender, app_data, user_data, callback=play_model):
     print(model_file)
 
 
-# use add_float_vect_value ?
 
 ###### GUI for user nav bar ######
 
 model_pitches = None # Global var of model pitches as list
 model_file_name = None
+stream_open = None
+p = pyaudio.PyAudio()
 
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".*")
@@ -224,7 +240,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     record_instructions2 = dpg.add_text("and Ctrl+c to stop. (buttons not working)")
     dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()
-    dpg.add_button(label="Stop")
+    dpg.add_button(label="Stop", callback=stop_mic)
     dpg.add_spacing(count=10)
 
 
