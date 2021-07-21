@@ -10,6 +10,15 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "Python: listen and attach",
+            "type": "python",
+            "request": "attach",
+            "listen": {
+                  "host": "127.0.0.1",
+                  "port": 5678
+            },
+       },
     ]
 }
