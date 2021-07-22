@@ -3,6 +3,9 @@ import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
 import matplotlib.pyplot as plt
 import dtwalign
+import keyboard
+import mouse
+
 
 '''
 # Read in recorded wav file
@@ -83,6 +86,7 @@ with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
     #dpg.set_value(m_pitches, [1.2, 3.4])
 
+
 ##### Required functions ######
 
 def plot_model(sender, app_data, user_data):
@@ -101,12 +105,12 @@ def plot_model(sender, app_data, user_data):
     dpg.add_line_series(times, model_pitches, parent=y_axis)
 
 
-
 def record_mic(sender, data):
-    p = pyaudio.PyAudio()
-    stream = []
 
     global stream_open
+
+    p = pyaudio.PyAudio()
+    stream = []
     
     # open stream
     buffer_size = 1024
@@ -124,45 +128,29 @@ def record_mic(sender, data):
     win_s = 4096 # fft size
     hop_s = buffer_size # hop size
     pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
-    pitch_o.set_unit("midi")
+    pitch_o.set_unit("Hz")
     pitch_o.set_tolerance(tolerance)
 
-    stream_open = True
-    while stream_open == True:
-        audiobuffer = stream.read(buffer_size)
-        signal = np.fromstring(audiobuffer, dtype=np.float32)
-        pitch = pitch_o(signal)[0]
-        confidence = pitch_o.get_confidence()
-        print("{} / {}".format(pitch,confidence))
+    while True:
+        try:
+            audiobuffer = stream.read(buffer_size)
+            signal = np.fromstring(audiobuffer, dtype=np.float32)
+            pitch = pitch_o(signal)[0]
+            confidence = pitch_o.get_confidence()
+            print("{} / {}".format(pitch,confidence))
+            if mouse.is_pressed(button='left'):
+                print("Recording stopped!")
+                break
+
+        except:
+            break
 
     stream.stop_stream()
     stream.close()
     p.terminate()
 
 def stop_mic(sender, data):
-    global stream_open
-    stream_open = False
-
-
-
-    # while True:
-    #     try:
-    #         audiobuffer = stream.read(buffer_size)
-    #         signal = np.fromstring(audiobuffer, dtype=np.float32)
-
-    #         pitch = pitch_o(signal)[0]
-    #         confidence = pitch_o.get_confidence()
-
-    #         print("{} / {}".format(pitch,confidence))
-
-    #     except KeyboardInterrupt:
-    #         print("*** Ctrl+C pressed, exiting")
-    #         break
-
-    # stream.stop_stream()
-    # stream.close()
-    # p.terminate()
-
+    pass
 
 def compare_pitch(sender, data):
     m_pitches_list = m_pitches.tolist(fill_value=0)
@@ -202,8 +190,6 @@ def upload_file_cb(sender, app_data, user_data):
 
 def selected_file(sender, app_data, user_data, callback=play_model):
     model_file = app_data["file_name_buffer"]
-
-
     print(model_file)
 
 

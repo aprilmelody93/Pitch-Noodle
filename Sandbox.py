@@ -1,12 +1,8 @@
-import dearpygui.dearpygui as dpg
-
-def button_callback(sender, app_data, user_data):
-    print(f"sender is: {sender}")
-    print(f"app_data is: {app_data}")
-    print(f"user_data is: {user_data}")
-
-with dpg.window(label="Tutorial"):
-
-    dpg.add_button(label="Apply", callback=button_callback, user_data="Some Data")
-
-dpg.start_dearpygui() 
+import keyboard  # using module keyboard
+while True:  # making a loop
+    try:  # used try so that if user pressed other than the given key error will not be shown
+        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print('You Pressed A Key!')
+            break  # finishing the loop
+    except:
+        break  # if user pressed a key other than the given key the loop will break
