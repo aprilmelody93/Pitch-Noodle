@@ -53,6 +53,7 @@ r_pitches_warping_path = res.get_warping_path(target="reference")
 from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
 from dearpygui.core import *
+import numpy.ma as ma
 from playsound import playsound
 import pyaudio
 import aubio
@@ -63,7 +64,6 @@ import wave
 # debugpy.connect(('localhost',5678))
 
 
-
 ##### Global theme and setup #####
 dpg.enable_docking()
 dpg.setup_viewport()
@@ -71,7 +71,6 @@ dpg.set_viewport_title(title='Welcome')
 dpg.set_viewport_width(1600)
 dpg.set_viewport_height(900)
 dpg.setup_registries()
-
 
 
 with dpg.font_registry():
@@ -88,6 +87,14 @@ with dpg.value_registry():
     #dpg.set_value(m_pitches, [1.2, 3.4])
 
 
+##### Global Variables ######
+model_pitches = None # Global var of model pitches as list
+pitches = None
+model_file_name = None
+mic_file_name = None
+mic_pitches = None
+
+
 ##### Model Pitch Callbacks ######
 
 def plot_model(sender, app_data, user_data):
@@ -99,8 +106,6 @@ def plot_model(sender, app_data, user_data):
 
     dpg.fit_axis_data(x_axis)
     dpg.fit_axis_data(y_axis)
-
-    print(type(model_pitches), len(model_pitches))
 
     times = list(range(0, len(model_pitches), 1))
     dpg.add_line_series(times, model_pitches, parent=y_axis)
@@ -125,8 +130,12 @@ def upload_file_cb(sender, app_data, user_data):
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
     pitches = pitches[start:] # remove anything before that index
-    pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
-    model_pitches = pitches.tolist(fill_value=None) 
+    model_pitches_nan = pitches.copy()
+    model_pitches = ma.masked_where (pitches <=0, pitches)
+    model_pitches[model_pitches <= 0] = np.nan
+    print(model_pitches)
+    # pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
+    # model_pitches = pitches.tolist(fill_value=0) 
 
 ##### Mic Pitch Callbacks ######
 
@@ -223,11 +232,6 @@ def play_your_file(sender, data):
 
 
 ###### GUI for user nav bar ######
-
-model_pitches = None # Global var of model pitches as list
-model_file_name = None
-mic_file_name = None
-mic_pitches = []
 
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
