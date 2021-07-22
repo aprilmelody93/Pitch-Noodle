@@ -56,6 +56,7 @@ from dearpygui.core import *
 from playsound import playsound
 import pyaudio
 import aubio
+import wave
 
 
 # import debugpy
@@ -87,7 +88,7 @@ with dpg.value_registry():
     #dpg.set_value(m_pitches, [1.2, 3.4])
 
 
-##### Required functions ######
+##### Model Pitch Callbacks ######
 
 def plot_model(sender, app_data, user_data):
 
@@ -104,10 +105,32 @@ def plot_model(sender, app_data, user_data):
     times = list(range(0, len(model_pitches), 1))
     dpg.add_line_series(times, model_pitches, parent=y_axis)
 
+def play_file(sender, app_data):
+
+    global model_file_name
+
+    if model_file_name != None:
+        playsound(model_file_name)
+
+
+def upload_file_cb(sender, app_data, user_data):
+
+    global model_pitches, model_file_name
+
+    # debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
+    model_file_name = app_data["file_name_buffer"]
+    print(model_file_name)
+    signal = basic.SignalObj(model_file_name)
+    pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
+    pitches = pitches.samp_values
+    start = np.argmax(pitches > 0) # find index of first >0 sample
+    pitches = pitches[start:] # remove anything before that index
+    pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
+    model_pitches = pitches.tolist(fill_value=None) 
+
+##### Mic Pitch Callbacks ######
 
 def record_mic(sender, data):
-
-    global stream_open
 
     p = pyaudio.PyAudio()
     stream = []
@@ -136,6 +159,7 @@ def record_mic(sender, data):
             audiobuffer = stream.read(buffer_size)
             signal = np.fromstring(audiobuffer, dtype=np.float32)
             pitch = pitch_o(signal)[0]
+            mic_pitches.append(pitch_o(signal)[0])
             confidence = pitch_o.get_confidence()
             print("{} / {}".format(pitch,confidence))
             if mouse.is_pressed(button='left'):
@@ -148,85 +172,88 @@ def record_mic(sender, data):
     stream.stop_stream()
     stream.close()
     p.terminate()
+    print(mic_pitches)
+
+    wf = wave.open(mic_file_name, 'wb')
+    wf.setnchannels(n_channels)
+    wf.setsampwidth(p.get_sample_size(format))
+    wf.setframerate(samplerate)
+    wf.writeframes(b''.join(mic_pitches))
+    wf.close()
 
 def stop_mic(sender, data):
-    pass
+    global mic_file_name
 
-def compare_pitch(sender, data):
-    m_pitches_list = m_pitches.tolist(fill_value=0)
-    r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
-    len_m = len(m_pitches_list)
-    r_times_short = r_times[0:len_m] # Resize because array size has to be the same
-    dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
+    mic_file_name = "user_output.wav"
 
-def play_model(sender, app_data):
+def your_pitch(sender, data):
 
-    global model_file_name
+    global mic_pitches, mic_file_name
 
-    if model_file_name != None:
-        playsound(model_file_name)
-
-
-# Callbacks
-def upload_file_cb(sender, app_data, user_data):
-
-    
-    global model_pitches, model_file_name
-
-    # debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
-    model_file_name = app_data["file_name_buffer"]
-    #hop_s = 512
-    signal = basic.SignalObj(model_file_name)
+    signal = basic.SignalObj(mic_file_name)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
-    start = np.argmax(pitches > 0) # find index of first >0 sample
-    pitches = pitches[start:] # remove anything before that index
-    pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
-    #m_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-    model_pitches = pitches.tolist(fill_value=None) # 
-    #playsound(filename)
+    start = np.argmax(pitches > 0)
+    pitches = pitches[start:]
+    hop_s = 512
+    r_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
+    mic_pitches = np.ma.masked_where(pitches <= 0, pitches)
 
-    # make buttons active
+    # dtw distance
+    res = dtwalign.dtw(m_pitches, mic_pitches, step_pattern="symmetricP2")
+    print("dtw distance: {}".format(res.distance))
+    print("dtw normalized distance: {}".format(res.normalized_distance))
 
-def selected_file(sender, app_data, user_data, callback=play_model):
-    model_file = app_data["file_name_buffer"]
-    print(model_file)
+    # dtw warp r_pitches to m_pitches
+    mic_pitches_warping_path = res.get_warping_path(target="reference")
 
+    # Resize array and print pitch
+    m_pitches_list = mic_pitches.tolist(fill_value=0)
+    mic_pitches_list = mic_pitches[mic_pitches_warping_path].tolist(fill_value=0)
+    len_m = len(m_pitches_list)
+    r_times_short = r_times[0:len_m] # Resize because array size has to be the same
+    dpg.add_line_series(r_times_short, mic_pitches_list, parent=y_axis)
+
+def play_your_file(sender, data):
+    global mic_file_name
+    print(mic_file_name)
+
+    if mic_file_name != None:
+        playsound(mic_file_name)
 
 
 ###### GUI for user nav bar ######
 
 model_pitches = None # Global var of model pitches as list
 model_file_name = None
-stream_open = None
-p = pyaudio.PyAudio()
+mic_file_name = None
+mic_pitches = []
 
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
-    dpg.add_file_extension(".*")
+    dpg.add_file_extension(".wav")
     
 
 with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
     welcome = dpg.add_text("Model Input")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
-    upload_button = dpg.add_button(label='Upload File', callback= lambda: dpg.show_item(file_dialog_id))
-    dpg.add_spacing(count=5)
-
-    play_model_button_id = dpg.add_button(label="Play model", callback=play_model)   
+    upload_button = dpg.add_button(label='Upload file', callback= lambda: dpg.show_item(file_dialog_id))
     dpg.add_same_line()
-    dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model)
+
+    play_model_button_id = dpg.add_button(label="Play file", callback=play_file)   
     dpg.add_spacing(count=10)
     dpg.add_separator()  # CH fix
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
-    dpg.add_button(label="Your pitch", callback= compare_pitch)
-    dpg.add_spacing(count=5)
     record_instructions = dpg.add_text("Click on the Record button to start,")
-    record_instructions2 = dpg.add_text("and Ctrl+c to stop. (buttons not working)")
+    record_instructions2 = dpg.add_text("and the Stop button to stop.")
+    dpg.add_spacing(count=3)
     dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()
-    dpg.add_button(label="Stop", callback=stop_mic)
+    dpg.add_button(label="Stop", callback = stop_mic)
+    dpg.add_same_line()
+    dpg.add_button(label="Play", callback = play_your_file)
     dpg.add_spacing(count=10)
 
 
@@ -251,20 +278,13 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)")
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)")
 
-        # dpg.fit_axis_data(x_axis)
-        # dpg.fit_axis_data(y_axis)
-
-        # m_pitches_list = m_pitches.tolist(fill_value=0)
-        # dpg.add_line_series(m_times, m_pitches_list, parent=y_axis)
-
-        # r_pitches_list = r_pitches[r_pitches_warping_path].tolist(fill_value=0)
-        # len_m = len(m_pitches_list)
-        # r_times_short = r_times[0:len_m] # Resize because array size has to be the same
-        # dpg.add_line_series(r_times_short, r_pitches_list, parent=y_axis)
-
     with dpg.theme() as theme_plot:
         dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
         dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (28, 93, 153), category=dpg.mvThemeCat_Core)
+    
+    dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model)
+    dpg.add_same_line()
+    dpg.add_button(label="Your pitch", callback= your_pitch)
             
     dpg.set_item_theme(plot_window, theme_plot)
 
