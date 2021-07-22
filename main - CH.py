@@ -80,7 +80,7 @@ with dpg.font_registry():
 with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 3, category=dpg.mvThemeCat_Plots)
+    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -99,7 +99,7 @@ mic_pitches = None
 
 def plot_model(sender, app_data, user_data):
 
-    global model_pitches
+    global model_pitches, model_file_name
 
     xaxis = dpg.generate_uuid()
     yaxis = dpg.generate_uuid()
@@ -108,7 +108,7 @@ def plot_model(sender, app_data, user_data):
     dpg.fit_axis_data(y_axis)
 
     times = list(range(0, len(model_pitches), 1))
-    dpg.add_line_series(times, model_pitches, parent=y_axis)
+    dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis))
 
 def play_file(sender, app_data):
 
@@ -279,8 +279,8 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.add_spacing(count=10)
 
     with dpg.plot(label="Intonation Plot", height=700, width=1200):
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)")
-        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)")
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", no_tick_labels = True)
+        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
     with dpg.theme() as theme_plot:
         dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
