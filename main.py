@@ -114,7 +114,7 @@ def record_mic(sender, data):
     win_s = 4096 # fft size
     hop_s = buffer_size # hop size
     pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
-    pitch_o.set_unit("midi")
+    pitch_o.set_unit("Hz")
     pitch_o.set_tolerance(tolerance)
 
 
@@ -122,10 +122,8 @@ def record_mic(sender, data):
         try:
             audiobuffer = stream.read(buffer_size)
             signal = np.fromstring(audiobuffer, dtype=np.float32)
-
             pitch = pitch_o(signal)[0]
             confidence = pitch_o.get_confidence()
-
             print("{} / {}".format(pitch,confidence))
 
         except KeyboardInterrupt:

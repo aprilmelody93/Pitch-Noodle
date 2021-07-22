@@ -92,8 +92,6 @@ model_pitches = None # Global var of model pitches as list
 pitches = None
 model_file_name = None
 mic_file_name = None
-mic_pitches = None
-
 
 ##### Model Pitch Callbacks ######
 
@@ -108,7 +106,8 @@ def plot_model(sender, app_data, user_data):
     dpg.fit_axis_data(y_axis)
 
     times = list(range(0, len(model_pitches), 1))
-    dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis))
+    dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
+    dpg.add_button(label="Delete" + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
 
 def play_file(sender, app_data):
 
@@ -130,12 +129,8 @@ def upload_file_cb(sender, app_data, user_data):
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
     pitches = pitches[start:] # remove anything before that index
-    model_pitches_nan = pitches.copy()
     model_pitches = ma.masked_where (pitches <=0, pitches)
-    model_pitches[model_pitches <= 0] = np.nan
-    print(model_pitches)
-    # pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
-    # model_pitches = pitches.tolist(fill_value=0) 
+    model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
 ##### Mic Pitch Callbacks ######
 
@@ -166,9 +161,9 @@ def record_mic(sender, data):
     while True:
         try:
             audiobuffer = stream.read(buffer_size)
-            signal = np.fromstring(audiobuffer, dtype=np.float32)
+            signal = np.frombuffer(audiobuffer, dtype=np.float32)
             pitch = pitch_o(signal)[0]
-            mic_pitches.append(pitch_o(signal)[0])
+            # mic_pitches.append(pitch_o(signal)[0])
             confidence = pitch_o.get_confidence()
             print("{} / {}".format(pitch,confidence))
             if mouse.is_pressed(button='left'):
@@ -181,14 +176,15 @@ def record_mic(sender, data):
     stream.stop_stream()
     stream.close()
     p.terminate()
-    print(mic_pitches)
+    print(type(stream), stream)
 
-    wf = wave.open(mic_file_name, 'wb')
-    wf.setnchannels(n_channels)
-    wf.setsampwidth(p.get_sample_size(format))
-    wf.setframerate(samplerate)
-    wf.writeframes(b''.join(mic_pitches))
-    wf.close()
+
+    # wf = wave.open(mic_file_name, 'wb')
+    # wf.setnchannels(n_channels)
+    # wf.setsampwidth(p.get_sample_size(format))
+    # wf.setframerate(samplerate)
+    # wf.writeframes(b''.join(mic_pitches))
+    # wf.close()
 
 def stop_mic(sender, data):
     global mic_file_name
@@ -231,7 +227,7 @@ def play_your_file(sender, data):
         playsound(mic_file_name)
 
 
-###### GUI for user nav bar ######
+###### Nav Bar Settings ######
 
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
@@ -271,14 +267,18 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.set_item_font(welcome, secondary_font)
     dpg.set_item_font(record, secondary_font)
 
-###### GUI for plot ######
+###### Plot Settings ######
 
 with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
 
-    dpg.add_text("Scroll with your mouse button or click and drag left and right to explore.")
-    dpg.add_spacing(count=10)
+    tips = dpg.add_text("Here are some basic tips:")
+    dpg.add_text("1. Scroll with your mouse button or click and drag left and right to explore.")
+    dpg.add_text("2.Left click on the legend to show/hide.")
+    dpg.add_text("3. Right click on the legend to delete.")
+    dpg.add_spacing(count=5)
 
-    with dpg.plot(label="Intonation Plot", height=700, width=1200):
+    with dpg.plot(label="Intonation Plot", height=600, width=1200):
+        dpg.add_plot_legend()
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", no_tick_labels = True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
@@ -291,5 +291,6 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.add_button(label="Your pitch", callback= your_pitch)
             
     dpg.set_item_theme(plot_window, theme_plot)
+    dpg.set_item_font(tips, secondary_font)
 
 dpg.start_dearpygui()
