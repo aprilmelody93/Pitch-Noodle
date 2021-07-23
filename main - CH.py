@@ -150,7 +150,7 @@ def record_mic(sender, data):
                     rate=samplerate,
                     input=True,
                     frames_per_buffer=buffer_size)
-    mic_file_name = "Int16.wav"
+    mic_file_name = "Your Input.wav"
 
     # # setup pitch
     # tolerance = 0.8
