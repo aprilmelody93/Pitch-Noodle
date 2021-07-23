@@ -136,12 +136,13 @@ def upload_file_cb(sender, app_data, user_data):
 
 def record_mic(sender, data):
 
+    global mic_file_name, mic_pitches
+
     p = pyaudio.PyAudio()
-    stream = []
-    
+
     # open stream
     buffer_size = 1024
-    pyaudio_format = pyaudio.paFloat32
+    pyaudio_format = pyaudio.paInt16
     n_channels = 1
     samplerate = 44100
     stream = p.open(format=pyaudio_format,
@@ -149,23 +150,26 @@ def record_mic(sender, data):
                     rate=samplerate,
                     input=True,
                     frames_per_buffer=buffer_size)
+    mic_file_name = "Int16.wav"
 
-    # setup pitch
-    tolerance = 0.8
-    win_s = 4096 # fft size
-    hop_s = buffer_size # hop size
-    pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
-    pitch_o.set_unit("Hz")
-    pitch_o.set_tolerance(tolerance)
+    # # setup pitch
+    # tolerance = 0.8
+    # win_s = 4096 # fft size
+    # hop_s = buffer_size # hop size
+    # pitch_o = aubio.pitch("default")
+    # pitch_o.set_unit("Hz")
+    # pitch_o.set_tolerance(tolerance)
+    mic_pitches = []
 
     while True:
         try:
             audiobuffer = stream.read(buffer_size)
             signal = np.frombuffer(audiobuffer, dtype=np.float32)
-            pitch = pitch_o(signal)[0]
-            # mic_pitches.append(pitch_o(signal)[0])
-            confidence = pitch_o.get_confidence()
-            print("{} / {}".format(pitch,confidence))
+            # pitch = pitch_o(signal)[0]
+            # confidence = pitch_o.get_confidence()
+            mic_pitches.append(signal)
+            print(signal)
+            # print("{} / {}".format(pitch,confidence))
             if mouse.is_pressed(button='left'):
                 print("Recording stopped!")
                 break
@@ -176,48 +180,46 @@ def record_mic(sender, data):
     stream.stop_stream()
     stream.close()
     p.terminate()
-    print(type(stream), stream)
+    print(mic_pitches)
 
-
-    # wf = wave.open(mic_file_name, 'wb')
-    # wf.setnchannels(n_channels)
-    # wf.setsampwidth(p.get_sample_size(format))
-    # wf.setframerate(samplerate)
-    # wf.writeframes(b''.join(mic_pitches))
-    # wf.close()
+    wf = wave.open(mic_file_name, 'wb')
+    wf.setnchannels(n_channels)
+    wf.setsampwidth(p.get_sample_size(pyaudio_format))
+    wf.setframerate(samplerate)
+    wf.writeframes(b''.join(mic_pitches))
+    wf.close()
 
 def stop_mic(sender, data):
-    global mic_file_name
-
-    mic_file_name = "user_output.wav"
+    pass
 
 def your_pitch(sender, data):
 
-    global mic_pitches, mic_file_name
+    global mic_pitches, mic_file_name, model_pitches
 
     signal = basic.SignalObj(mic_file_name)
+    print("Extracting pitch from: ", mic_file_name)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
-    start = np.argmax(pitches > 0)
-    pitches = pitches[start:]
-    hop_s = 512
-    r_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-    mic_pitches = np.ma.masked_where(pitches <= 0, pitches)
+    start = np.argmax(pitches > 0) # find index of first >0 sample
+    pitches = pitches[start:] # remove anything before that index
+    mic_pitches = np.ma.masked_where(pitches <1, pitches)
+    mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
     # dtw distance
-    res = dtwalign.dtw(m_pitches, mic_pitches, step_pattern="symmetricP2")
+    res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
     print("dtw distance: {}".format(res.distance))
     print("dtw normalized distance: {}".format(res.normalized_distance))
 
     # dtw warp r_pitches to m_pitches
     mic_pitches_warping_path = res.get_warping_path(target="reference")
-
+    times = list(range(0, len(model_pitches), 1))
     # Resize array and print pitch
-    m_pitches_list = mic_pitches.tolist(fill_value=0)
-    mic_pitches_list = mic_pitches[mic_pitches_warping_path].tolist(fill_value=0)
-    len_m = len(m_pitches_list)
-    r_times_short = r_times[0:len_m] # Resize because array size has to be the same
-    dpg.add_line_series(r_times_short, mic_pitches_list, parent=y_axis)
+    # m_pitches_list = mic_pitches.tolist(fill_value=0)
+    # mic_pitches_list = mic_pitches[mic_pitches_warping_path].tolist(fill_value=0)
+    # len_model = len(model_pitches)
+    # mic_pitches_resize = mic_pitches[0:len_model] # Resize because array size has to be the same
+    dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], parent=y_axis)
+
 
 def play_your_file(sender, data):
     global mic_file_name

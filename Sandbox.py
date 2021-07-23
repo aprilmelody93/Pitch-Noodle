@@ -1,29 +1,38 @@
-import dearpygui.dearpygui as dpg
-from math import sin
+import pyaudio
+import wave
 
-sindatax = []
-sindatay = []
-for i in range(0, 100):
-    sindatax.append(i/100)
-    sindatay.append(0.5 + 0.5*sin(50*i/100))
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
+RECORD_SECONDS = 3
+WAVE_OUTPUT_FILENAME = "output.wav"
 
-with dpg.window(label="Tutorial", width=400, height=400):
+p = pyaudio.PyAudio()
 
-    # create plot
-    dpg.add_text("Right click a series in the legend!")
-    with dpg.plot(label="Line Series", height=-1, width=-1):
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
 
-        dpg.add_plot_legend()
+print("* recording")
 
-        dpg.add_plot_axis(dpg.mvXAxis, label="x")
-        yaxis = dpg.add_plot_axis(dpg.mvYAxis, label="y")
+frames = []
 
-        # series 1
-        dpg.add_line_series(sindatax, sindatay, label="series 1", parent=yaxis)
-        dpg.add_button(label="Delete Series 1", user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+    data = stream.read(CHUNK)
+    frames.append(data)
 
-        # series 2
-        dpg.add_line_series(sindatax, sindatay, label="series 2", parent=yaxis)
-        dpg.add_button(label="Delete Series 2", user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+print("* done recording")
 
-dpg.start_dearpygui()
+stream.stop_stream()
+stream.close()
+p.terminate()
+
+wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+wf.setnchannels(CHANNELS)
+wf.setsampwidth(p.get_sample_size(FORMAT))
+wf.setframerate(RATE)
+wf.writeframes(b''.join(frames))
+wf.close()
