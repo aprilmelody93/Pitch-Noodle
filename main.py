@@ -59,7 +59,7 @@ def plot_model(sender, app_data, user_data):
     dpg.fit_axis_data(y_axis)
 
     times = list(range(0, len(model_pitches), 1))
-    print("Extracted model pitch...")
+    print("Extracting model pitch...")
     dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
     print("Model pitch extracted!")
@@ -160,6 +160,7 @@ def your_pitch(sender, user_data):
     # Resize array and print pitch
     len_model = len(model_pitches)
     mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
+
     dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
     print("Your pitch extracted!")
