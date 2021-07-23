@@ -216,9 +216,9 @@ def your_pitch(sender, data):
     # Resize array and print pitch
     # m_pitches_list = mic_pitches.tolist(fill_value=0)
     # mic_pitches_list = mic_pitches[mic_pitches_warping_path].tolist(fill_value=0)
-    # len_model = len(model_pitches)
-    # mic_pitches_resize = mic_pitches[0:len_model] # Resize because array size has to be the same
-    dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], parent=y_axis)
+    len_model = len(model_pitches)
+    mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
+    dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
 
 
 def play_your_file(sender, data):
