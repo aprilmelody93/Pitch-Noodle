@@ -180,7 +180,7 @@ def record_mic(sender, data):
     stream.stop_stream()
     stream.close()
     p.terminate()
-    
+
     wf = wave.open(mic_file_name, 'wb')
     wf.setnchannels(n_channels)
     wf.setsampwidth(p.get_sample_size(pyaudio_format))

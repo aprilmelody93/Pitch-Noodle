@@ -69,6 +69,7 @@ def play_file(sender, app_data):
     global model_file_name
 
     if model_file_name != None:
+        print("Playing file...")
         playsound(model_file_name)
 
 
@@ -110,10 +111,10 @@ def record_mic(sender, data):
 
     while True:
         try:
+            print("Recording started...")
             audiobuffer = stream.read(buffer_size)
             signal = np.frombuffer(audiobuffer, dtype=np.float32)
             mic_pitches.append(signal)
-            print(signal)
             if mouse.is_pressed(button='left'):
                 print("Recording stopped!")
                 break
