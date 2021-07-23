@@ -6,48 +6,6 @@ import dtwalign
 import keyboard
 import mouse
 
-
-'''
-# Read in recorded wav file
-
-filename1 = "Karen_44100.wav"
-filename2 = "Daniel.wav"
-hop_s = 512
-
-signal = basic.SignalObj(filename1)
-pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-pitches = pitches.samp_values
-start = np.argmax(pitches > 0) # find index of first >0 sample
-pitches = pitches[start:] # remove anything before that index
-m_pitches = np.ma.masked_where(pitches <= 0, pitches) # mask 0 pitches (confidence was too low)
-m_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-
-signal = basic.SignalObj(filename2)
-pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-pitches = pitches.samp_values
-start = np.argmax(pitches > 0)
-pitches = pitches[start:]
-r_times = [(t * hop_s) / 1000 for t in range(len(pitches))]
-r_pitches = np.ma.masked_where(pitches <= 0, pitches)
-
-
-plt.figure(figsize=(25, 3))
-res = dtwalign.dtw(m_pitches, r_pitches, step_pattern="symmetricP2")
-
-# dtw distance
-print("dtw distance: {}".format(res.distance))
-print("dtw normalized distance: {}".format(res.normalized_distance))
-
-# # warp r_pitches to m_pitches
-r_pitches_warping_path = res.get_warping_path(target="reference")
-# plt.xlabel('time (ms)', fontsize=18)
-# plt.ylabel('pitch (Hz)', fontsize=18)
-# plt.plot(m_pitches, linewidth=2.5, label="Model")
-# plt.plot(r_pitches[r_pitches_warping_path], linewidth=2.5, label="Mircophone", color="orange")
-# plt.legend()
-# plt.show()
-
-'''
 ###############################   GUI   #########################################
 
 from dearpygui.dearpygui import *
@@ -107,7 +65,9 @@ def plot_model(sender, app_data, user_data):
     dpg.fit_axis_data(y_axis)
 
     times = list(range(0, len(model_pitches), 1))
-    dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
+    mod_pitch_no0 = model_pitches.copy()
+    mod_pitch_no0[mod_pitch_no0 <= 0] = np.nan # masking 0 values with NaN so that it doesn't plot
+    dpg.add_line_series(times, mod_pitch_no0, label=model_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
 
 def play_file(sender, app_data):
@@ -130,8 +90,7 @@ def upload_file_cb(sender, app_data, user_data):
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
     pitches = pitches[start:] # remove anything before that index
-    model_pitches = ma.masked_where (pitches <=0, pitches)
-    model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
+    model_pitches = pitches
 
 ##### Mic Pitch Callbacks ######
 
@@ -196,14 +155,15 @@ def your_pitch(sender, data):
 
     global mic_pitches, mic_file_name, model_pitches
 
-    signal = basic.SignalObj(mic_file_name)
-    print("Extracting pitch from: ", mic_file_name)
+    mic_file_test = "Int16.wav"
+    signal = basic.SignalObj(mic_file_test)
+    print("Extracting pitch from: ", mic_file_test)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-    pitches = pitches.samp_values
-    start = np.argmax(pitches > 0) # find index of first >0 sample
-    pitches = pitches[start:] # remove anything before that index
-    mic_pitches = np.ma.masked_where(pitches <1, pitches)
-    mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
+    mic_pitches = pitches.samp_values
+    start = np.argmax(mic_pitches > 0) # find index of first >0 sample
+    mic_pitches = mic_pitches[start:] # remove anything before that index
+    # mic_pitches = np.ma.masked_where(pitches <1, pitches)
+    # mic_pitches[mic_pitches <= 0] = np.nan # masking 0 values with NaN so that it doesn't plot
 
     # dtw distance
     
@@ -215,13 +175,12 @@ def your_pitch(sender, data):
     # dtw warp r_pitches to m_pitches
     mic_pitches_warping_path = res.get_warping_path(target="reference")
     times = list(range(0, len(model_pitches), 1))
-    # Resize array and print pitch
-    # m_pitches_list = mic_pitches.tolist(fill_value=0)
-    # mic_pitches_list = mic_pitches[mic_pitches_warping_path].tolist(fill_value=0)
-    len_model = len(model_pitches)
-    mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
-    dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
-    dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+
+    wp = mic_pitches[mic_pitches_warping_path]
+    # mic_pitches = np.ma.masked_where(wp <1, wp)
+    wp[wp <= 0] = np.nan # masking 0 values with NaN so that it doesn't plot
+    dpg.add_line_series(times, wp, label = mic_file_name, parent=y_axis)
+    # dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
 
 def play_your_file(sender, data):
     global mic_file_name
@@ -283,7 +242,7 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
 
     with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
         dpg.add_plot_legend()
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", no_tick_labels = True)
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (samples)", no_tick_labels = True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
     with dpg.theme() as theme_plot:
