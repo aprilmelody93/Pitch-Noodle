@@ -59,8 +59,10 @@ def plot_model(sender, app_data, user_data):
     dpg.fit_axis_data(y_axis)
 
     times = list(range(0, len(model_pitches), 1))
+    print("Extracted model pitch...")
     dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+    print("Model pitch extracted!")
 
 def play_file(sender, app_data):
 
@@ -138,7 +140,7 @@ def your_pitch(sender, user_data):
     global mic_pitches, mic_file_name, model_pitches
 
     signal = basic.SignalObj(mic_file_name)
-    print("Extracting pitch from: ", mic_file_name)
+    print("Extracting your pitch...")
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
@@ -148,8 +150,8 @@ def your_pitch(sender, user_data):
 
     # dtw distance
     res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
-    print("dtw distance: {}".format(res.distance))
-    print("dtw normalized distance: {}".format(res.normalized_distance))
+    # print("dtw distance: {}".format(res.distance))
+    # print("dtw normalized distance: {}".format(res.normalized_distance))
 
     # dtw warp r_pitches to m_pitches
     mic_pitches_warping_path = res.get_warping_path(target="reference")
@@ -160,6 +162,7 @@ def your_pitch(sender, user_data):
     mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
     dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+    print("Your pitch extracted!")
 
 def play_your_file(sender, data):
     global mic_file_name
