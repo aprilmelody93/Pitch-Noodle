@@ -180,8 +180,7 @@ def record_mic(sender, data):
     stream.stop_stream()
     stream.close()
     p.terminate()
-    print(mic_pitches)
-
+    
     wf = wave.open(mic_file_name, 'wb')
     wf.setnchannels(n_channels)
     wf.setsampwidth(p.get_sample_size(pyaudio_format))
@@ -219,7 +218,7 @@ def your_pitch(sender, data):
     len_model = len(model_pitches)
     mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
     dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
-
+    dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
 
 def play_your_file(sender, data):
     global mic_file_name
@@ -279,7 +278,7 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.add_text("3. Right click on the legend to delete.")
     dpg.add_spacing(count=5)
 
-    with dpg.plot(label="Intonation Plot", height=600, width=1200):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
         dpg.add_plot_legend()
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", no_tick_labels = True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
