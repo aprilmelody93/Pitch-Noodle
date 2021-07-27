@@ -77,9 +77,9 @@ def upload_file_cb(sender, app_data, user_data):
 
     global model_pitches, model_file_name
 
+    configure_item(status, show = True, default_value = "Uploading...")
     # debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
     model_file_name = app_data["file_name_buffer"]
-    print(model_file_name)
     signal = basic.SignalObj(model_file_name)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
@@ -88,8 +88,7 @@ def upload_file_cb(sender, app_data, user_data):
     model_pitches = ma.masked_where (pitches <=0, pitches)
     model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
-    configure_item(mod_sep1, show = True)
-    configure_item(mod_sep2, show = True)
+    configure_item(status, show=False)
     configure_item(play_model, show=True)
     configure_item(show_model_name, default_value=model_file_name, show=True)
     configure_item(model_pitch, show = True)
@@ -205,14 +204,15 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload file', callback= lambda: dpg.show_item(file_dialog_id))
     dpg.add_spacing(count=3)
-    mod_sep1 = dpg.add_separator(show=False) 
-    show_model_name = dpg.add_text(show = False)
+    dpg.add_separator() 
+    status = dpg.add_text(show = False)
+    show_model_name = dpg.add_text(show=False)
     play_model = dpg.add_button(show = False, label="Play", callback=play_file)
     dpg.add_same_line()
     model_pitch = dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model, show=False)
     dpg.add_same_line()
     delete_model = dpg.add_button(show = False, label="Delete")
-    mod_sep2 = dpg.add_separator(show=False) 
+    dpg.add_separator() 
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
