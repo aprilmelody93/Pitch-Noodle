@@ -1,15 +1,10 @@
+from dearpygui.core import *
 import dearpygui.dearpygui as dpg
 
-with dpg.window(label="Delete Files", modal=True, show=False) as modal_id:
-    dpg.add_text("All those beautiful files will be deleted.\nThis operation cannot be undone!")
-    dpg.add_separator()
-    dpg.add_checkbox(label="Don't ask me next time")
-    dpg.add_button(label="OK", width=75, callback=lambda: dpg.configure_item(modal_id, show=False))
-    dpg.add_same_line()
-    dpg.add_button(label="Cancel", width=75, callback=lambda: dpg.configure_item(modal_id, show=False))
+def change_me (sender, user_data):
+    configure_item(item, enabled=False, label="New Label")
 
-with dpg.window(label="Tutorial"):
-
-    dpg.add_button(label="Open Dialog", callback=lambda:dpg.configure_item(modal_id, show=True))
+with dpg.window(label="test"):  
+    item = add_button(enabled=True, label="Press me", callback = change_me)
 
 dpg.start_dearpygui()

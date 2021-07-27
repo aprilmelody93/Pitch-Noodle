@@ -36,6 +36,7 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
+    dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -86,6 +87,13 @@ def upload_file_cb(sender, app_data, user_data):
     pitches = pitches[start:] # remove anything before that index
     model_pitches = ma.masked_where (pitches <=0, pitches)
     model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
+
+    configure_item(mod_sep1, show = True)
+    configure_item(mod_sep2, show = True)
+    configure_item(play_model, show=True)
+    configure_item(show_model_name, default_value=model_file_name, show=True)
+    configure_item(model_pitch, show = True)
+    configure_item(delete_model, show = True, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u, children_only=True))
 
 ##### Mic Pitch Callbacks ######
 
@@ -140,7 +148,12 @@ def record_mic(sender, data):
     wf.close()
 
 def stop_mic(sender, data):
-    pass
+    configure_item(mic_sep1, show = True)
+    configure_item(mic_sep2, show = True)
+    configure_item(play_mic, show = True)
+    configure_item(show_mic_name, default_value=mic_file_name, show=True)
+    configure_item(show_mic_pitch, show = True)
+    configure_item(delete_mic, show = True, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u, children_only=True))
 
 def your_pitch(sender, user_data):
 
@@ -191,21 +204,32 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload file', callback= lambda: dpg.show_item(file_dialog_id))
+    dpg.add_spacing(count=3)
+    mod_sep1 = dpg.add_separator(show=False) 
+    show_model_name = dpg.add_text(show = False)
+    play_model = dpg.add_button(show = False, label="Play", callback=play_file)
     dpg.add_same_line()
-
-    play_model_button_id = dpg.add_button(label="Play file", callback=play_file)   
-    dpg.add_spacing(count=10)
-    dpg.add_separator()  # CH fix
+    model_pitch = dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model, show=False)
+    dpg.add_same_line()
+    delete_model = dpg.add_button(show = False, label="Delete")
+    mod_sep2 = dpg.add_separator(show=False) 
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
-    dpg.add_text("Click on the Record button to start, \n and the Stop button to stop.")
+    dpg.add_text("Click on the Record button to start,\n and the Stop button to stop.")
     dpg.add_spacing(count=3)
     dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()
     dpg.add_button(label="Stop", callback = stop_mic)
+    dpg.add_spacing(count=3)
+    mic_sep1 = dpg.add_separator(show = False) 
+    show_mic_name = dpg.add_text(show = False)
+    play_mic = dpg.add_button(show = False, label="Play", callback = play_your_file)
     dpg.add_same_line()
-    dpg.add_button(label="Play", callback = play_your_file)
+    show_mic_pitch = dpg.add_button(show = False, label="Your pitch", callback= your_pitch)
+    dpg.add_same_line()
+    delete_mic = dpg.add_button(show = False, label="Delete")
+    mic_sep2 = dpg.add_separator(show = False) 
     dpg.add_spacing(count=10)
 
 
@@ -238,10 +262,6 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
         dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
         dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (28, 93, 153), category=dpg.mvThemeCat_Core)
     
-    dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model)
-    dpg.add_same_line()
-    dpg.add_button(label="Your pitch", callback= your_pitch)
-            
     dpg.set_item_theme(plot_window, theme_plot)
     dpg.set_item_font(tips, secondary_font)
 
