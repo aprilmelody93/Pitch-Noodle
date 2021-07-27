@@ -250,8 +250,8 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
-    record_instructions = dpg.add_text("Click on the Record button to start,")
-    record_instructions2 = dpg.add_text("and the Stop button to stop.")
+    record_instructions = dpg.add_text("Click on the Record button to start, \nand the Stop button to stop.")
+    # record_instructions2 = dpg.add_text("and the Stop button to stop.")
     dpg.add_spacing(count=3)
     dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()

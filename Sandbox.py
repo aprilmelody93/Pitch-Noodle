@@ -1,38 +1,15 @@
-import pyaudio
-import wave
+import dearpygui.dearpygui as dpg
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-RECORD_SECONDS = 3
-WAVE_OUTPUT_FILENAME = "output.wav"
+with dpg.window(label="Delete Files", modal=True, show=False) as modal_id:
+    dpg.add_text("All those beautiful files will be deleted.\nThis operation cannot be undone!")
+    dpg.add_separator()
+    dpg.add_checkbox(label="Don't ask me next time")
+    dpg.add_button(label="OK", width=75, callback=lambda: dpg.configure_item(modal_id, show=False))
+    dpg.add_same_line()
+    dpg.add_button(label="Cancel", width=75, callback=lambda: dpg.configure_item(modal_id, show=False))
 
-p = pyaudio.PyAudio()
+with dpg.window(label="Tutorial"):
 
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK)
+    dpg.add_button(label="Open Dialog", callback=lambda:dpg.configure_item(modal_id, show=True))
 
-print("* recording")
-
-frames = []
-
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-
-print("* done recording")
-
-stream.stop_stream()
-stream.close()
-p.terminate()
-
-wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-wf.setnchannels(CHANNELS)
-wf.setsampwidth(p.get_sample_size(FORMAT))
-wf.setframerate(RATE)
-wf.writeframes(b''.join(frames))
-wf.close()
+dpg.start_dearpygui()

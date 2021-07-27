@@ -45,6 +45,7 @@ model_pitches = None # Global var of model pitches as list
 pitches = None
 model_file_name = None
 mic_file_name = None
+recording_counter = 0
 
 ##### Model Pitch Callbacks ######
 
@@ -52,9 +53,7 @@ def plot_model(sender, app_data, user_data):
 
     global model_pitches, model_file_name
 
-    xaxis = dpg.generate_uuid()
-    yaxis = dpg.generate_uuid()
-
+    model_file_name = model_file_name.replace(".wav", "")
     dpg.fit_axis_data(x_axis)
     dpg.fit_axis_data(y_axis)
 
@@ -92,7 +91,7 @@ def upload_file_cb(sender, app_data, user_data):
 
 def record_mic(sender, data):
 
-    global mic_file_name, mic_pitches
+    global mic_file_name, mic_pitchesm, recording_counter
 
     p = pyaudio.PyAudio()
 
@@ -106,7 +105,14 @@ def record_mic(sender, data):
                     rate=samplerate,
                     input=True,
                     frames_per_buffer=buffer_size)
-    mic_file_name = "Your Input.wav"
+
+    if recording_counter == 0:
+        recording_counter = 1
+    elif recording_counter != 0:
+        recording_counter += 1
+
+    mic_file_name = f'Your Input {recording_counter}.wav'
+    print(mic_file_name)
     mic_pitches = []
 
     while True:
@@ -161,6 +167,7 @@ def your_pitch(sender, user_data):
     # Resize array and print pitch
     len_model = len(model_pitches)
     mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
+    mic_file_name = mic_file_name.replace(".wav", "")
 
     dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
     dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
@@ -192,8 +199,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_spacing(count=10)
 
     record = dpg.add_text("Your Input")
-    record_instructions = dpg.add_text("Click on the Record button to start,")
-    record_instructions2 = dpg.add_text("and the Stop button to stop.")
+    dpg.add_text("Click on the Record button to start, \n and the Stop button to stop.")
     dpg.add_spacing(count=3)
     dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()
