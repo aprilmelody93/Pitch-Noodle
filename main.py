@@ -10,8 +10,8 @@ from dearpygui.core import *
 import numpy.ma as ma
 from playsound import playsound
 import pyaudio
-import aubio
 import wave
+
 
 ###############################   GUI   #########################################
 
@@ -29,8 +29,8 @@ dpg.setup_registries()
 
 
 with dpg.font_registry():
-    dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 22, default_font=True)
-    secondary_font = dpg.add_font("PlayfairDisplay-VariableFont_wght.ttf", 30)
+    dpg.add_font("fonts\Playfair.ttf", 22, default_font=True)
+    secondary_font = dpg.add_font("fonts\Playfair.ttf", 30)
 
 with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
@@ -71,6 +71,7 @@ def play_file(sender, app_data):
     if model_file_name != None:
         configure_item(status, show = True, default_value = "Playing file...")
         playsound(model_file_name)
+        configure_item(status, show = True, default_value = "Audio file ended!")
 
 
 def upload_file_cb(sender, app_data, user_data):
@@ -194,6 +195,7 @@ def play_your_file(sender, data):
 
     configure_item(rec_status, show=True, default_value = "Playing...")
     print(mic_file_name)
+    configure_item(rec_status, show=True, default_value = "Audio file ended!")
 
     if mic_file_name != None:
         playsound(mic_file_name)
