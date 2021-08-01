@@ -1,3 +1,4 @@
+from os import error
 import numpy as np
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
@@ -32,6 +33,7 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
     dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
+    dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 4, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -57,10 +59,10 @@ def plot_model(sender, app_data, user_data):
     times = list(range(0, len(model_pitches), 1))
     configure_item(status, show = True, default_value = "Extracting model pitch...")
     dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
-    dpg.add_button(label="Delete " + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_graph)
+    dpg.add_button(label="Delete " + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mod_graph)
     configure_item(status, show = True, default_value = "Model pitch extracted!")
 
-def delete_graph(sender, app_data, user_data):
+def delete_mod_graph(sender, app_data, user_data):
     dpg.delete_item(user_data)
     configure_item(status, default_value = "*Crickets* Please upload a file.")
     configure_item(play_model, show=False)
@@ -184,10 +186,23 @@ def your_pitch(sender, user_data):
     mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
     mic_file_name = mic_file_name.replace(".wav", "")
 
-    configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
-    dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
-    dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
-    configure_item(rec_status, show=False)
+    if error:
+        configure_item(rec_status, default_value = "Problem encountered. \nPlease record again.")
+        configure_item(play_mic, show=False)
+        configure_item(show_mic_name, show = False)
+        configure_item(show_mic_pitch, show = False)
+
+    else:
+        configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
+        dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
+        dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mic_graph)
+        configure_item(rec_status, show=False)
+
+def delete_mic_graph(sender, app_data, user_data):
+    dpg.delete_item(user_data)
+    configure_item(show_mic_name, default_value = "*Crickets* Please record a new file.")
+    configure_item(play_mic, show=False)
+    configure_item(show_mic_pitch, show = False)
 
 def play_your_file(sender, data):
     global mic_file_name
@@ -216,7 +231,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     show_model_name = dpg.add_text(show=False)
     play_model = dpg.add_button(show = False, label="Play", callback=play_file)
     dpg.add_same_line()
-    model_pitch = dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model, show=False)
+    model_pitch = dpg.add_button(label="Extract Model Pitch", user_data=m_pitches, callback=plot_model, show=False)
     dpg.add_separator() 
     dpg.add_spacing(count=10)
 
@@ -233,9 +248,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     show_mic_name = dpg.add_text(show = False)
     play_mic = dpg.add_button(show = False, label="Play", callback = play_your_file)
     dpg.add_same_line()
-    show_mic_pitch = dpg.add_button(show = False, label="Your pitch", callback= your_pitch)
-    dpg.add_same_line()
-    delete_mic = dpg.add_button(show = False, label="Delete")
+    show_mic_pitch = dpg.add_button(show = False, label="Extract Your Pitch", callback= your_pitch)
     mic_sep2 = dpg.add_separator(show = False) 
     dpg.add_spacing(count=10)
 
