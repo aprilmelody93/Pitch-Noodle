@@ -12,12 +12,7 @@ from playsound import playsound
 import pyaudio
 import wave
 
-
 ###############################   GUI   #########################################
-
-# import debugpy
-# debugpy.connect(('localhost',5678))
-
 
 ##### Global theme and setup #####
 dpg.enable_docking()
@@ -36,7 +31,7 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
+    # dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -45,6 +40,7 @@ with dpg.value_registry():
 model_pitches = None # Global var of model pitches as list
 pitches = None
 model_file_name = None
+file_path = None
 mic_file_name = None
 recording_counter = 0
 
@@ -52,7 +48,7 @@ recording_counter = 0
 
 def plot_model(sender, app_data, user_data):
 
-    global model_pitches, model_file_name
+    global model_pitches, model_file_name, file_path
 
     model_file_name = model_file_name.replace(".wav", "")
     dpg.fit_axis_data(x_axis)
@@ -61,27 +57,27 @@ def plot_model(sender, app_data, user_data):
     times = list(range(0, len(model_pitches), 1))
     configure_item(status, show = True, default_value = "Extracting model pitch...")
     dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
-    dpg.add_button(label="Delete" + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u))
+    dpg.add_button(label="Delete " + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_button)
     configure_item(status, show = True, default_value = "Model pitch extracted!")
 
 def play_file(sender, app_data):
 
-    global model_file_name
+    global file_path
 
-    if model_file_name != None:
+    if file_path != None:
         configure_item(status, show = True, default_value = "Playing file...")
-        playsound(model_file_name)
-        configure_item(status, show = True, default_value = "Audio file ended!")
+        playsound(file_path)
+        configure_item(status, show = True, default_value = "Done playing!")
 
 
 def upload_file_cb(sender, app_data, user_data):
 
-    global model_pitches, model_file_name
+    global model_pitches, model_file_name, file_path
 
     configure_item(status, show = True, default_value = "Uploading...")
-    # debugpy.breakpoint() # Must use this method to get breakpoint inside a callback
+    file_path = app_data["file_path_name"]
     model_file_name = app_data["file_name_buffer"]
-    signal = basic.SignalObj(model_file_name)
+    signal = basic.SignalObj(file_path)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
@@ -93,7 +89,10 @@ def upload_file_cb(sender, app_data, user_data):
     configure_item(play_model, show=True)
     configure_item(show_model_name, default_value=model_file_name, show=True)
     configure_item(model_pitch, show = True)
-    configure_item(delete_model, show = True, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u, children_only=True))
+    configure_item(delete_model, show = True)
+
+def delete_button(sender, app_data, user_data):
+    dpg.delete_item(user_data, children_only=True)
 
 ##### Mic Pitch Callbacks ######
 
@@ -122,17 +121,14 @@ def record_mic(sender, data):
         recording_counter += 1
 
     mic_file_name = f'Your Input {recording_counter}.wav'
-    print(mic_file_name)
     mic_pitches = []
 
     while True:
         try:
-            # print("Recording started...")
             audiobuffer = stream.read(buffer_size)
             signal = np.frombuffer(audiobuffer, dtype=np.float32)
             mic_pitches.append(signal)
             if mouse.is_pressed(button='left'):
-                # print("Recording stopped!")
                 break
 
         except:
@@ -156,7 +152,7 @@ def stop_mic(sender, data):
     configure_item(play_mic, show = True)
     configure_item(show_mic_name, default_value=mic_file_name, show=True)
     configure_item(show_mic_pitch, show = True)
-    configure_item(delete_mic, show = True, user_data = dpg.last_item(), parent=dpg.last_item(), callback=lambda s, a, u: dpg.delete_item(u, children_only=True))
+    configure_item(delete_mic, show = True, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_button)
 
 def your_pitch(sender, user_data):
 
@@ -195,7 +191,7 @@ def play_your_file(sender, data):
 
     configure_item(rec_status, show=True, default_value = "Playing...")
     print(mic_file_name)
-    configure_item(rec_status, show=True, default_value = "Audio file ended!")
+    configure_item(rec_status, show=True, default_value = "Done playing!")
 
     if mic_file_name != None:
         playsound(mic_file_name)
@@ -219,7 +215,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_same_line()
     model_pitch = dpg.add_button(label="Model pitch", user_data=m_pitches, callback=plot_model, show=False)
     dpg.add_same_line()
-    delete_model = dpg.add_button(show = False, label="Delete")
+    delete_model = dpg.add_button(show = False, label="Delete", callback=delete_button)
     dpg.add_separator() 
     dpg.add_spacing(count=10)
 
