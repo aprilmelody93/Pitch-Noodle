@@ -1,5 +1,3 @@
-from logging import raiseExceptions
-from os import error
 import numpy as np
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
@@ -45,10 +43,12 @@ model_file_name = None
 file_path = None
 mic_file_name = None
 recording_counter = 0
+group_name = 0
 
 ##### Model Pitch Callbacks ######
 
 def plot_model(sender, app_data, user_data):
+    """Takes in times and model_pitches; return a line series."""
 
     global model_pitches, model_file_name, file_path
 
@@ -63,6 +63,8 @@ def plot_model(sender, app_data, user_data):
     configure_item(status, show = True, default_value = "Model pitch extracted!")
 
 def delete_mod_graph(sender, app_data, user_data):
+    """Takes in user_data; deletes line series."""
+
     dpg.delete_item(user_data)
     configure_item(status, default_value = "*Crickets* Please upload a file.")
     configure_item(play_model, show=False)
@@ -70,6 +72,7 @@ def delete_mod_graph(sender, app_data, user_data):
     configure_item(model_pitch, show = False)
 
 def play_file(sender, app_data):
+    """Takes in global file_path (derived from model_file_name); plays the sound file."""
 
     global file_path
 
@@ -80,6 +83,7 @@ def play_file(sender, app_data):
 
 
 def upload_file_cb(sender, app_data, user_data):
+    """Uploads selected file; creates model_file_name and file_path; extracts pitch from file_path. Returns model_pitches."""
 
     global model_pitches, model_file_name, file_path
 
@@ -102,6 +106,7 @@ def upload_file_cb(sender, app_data, user_data):
 ##### Mic Pitch Callbacks ######
 
 def record_mic(sender, app_data, user_data):
+    """Opens PyAudio stream and records user's audio. Writes user's audio into .wav file. Extracts .wav file for mic_pitches."""
 
     global mic_file_name, mic_pitches, recording_counter
 
@@ -151,11 +156,19 @@ def record_mic(sender, app_data, user_data):
     wf.close()
 
 def stop_mic(sender, data):
-    global mic_file_name
+    """Creates buttons specific to the mic_file_name (.wav files) that are created. Grouping needs work."""
 
-    configure_item(rec_status, show=True, default_value = "Recording completed!")
+    global mic_file_name, recording_counter, group_name
+
+    configure_item(rec_status, show=True, default_value = "Recording completed! \nPlease extract your pitch.")
     configure_item(mic_sep1, show = True)
 
+    mic_file_name = f'Your Input {recording_counter}.wav'
+    group_name = "group1"
+    print("Group name: ", group_name)
+
+    group_name = add_group(label=group_name, parent=user_nav_bar, user_data=group_name)
+    print("Group Name 2: ", group_name)
     dpg.add_text(mic_file_name, parent=user_nav_bar)
     dpg.add_button(label="Play", callback = play_your_file, parent=user_nav_bar, user_data=mic_file_name)
     dpg.add_same_line(parent=user_nav_bar)
@@ -164,55 +177,60 @@ def stop_mic(sender, data):
 
 
 def your_pitch(sender, app_data, user_data):
+    """Takes in user_data (aka 'mic_file_name' which points to specific .wav file). 
+    Extracts .wav file as mic_pitch. 
+    dtwalign module warps mic_pitch to model_pitch for overlapping purposes.
+    Warping process prone to IndexError; solution is to shorten recording time. """
 
-    global mic_pitches, model_pitches, mic_file_name
+    global mic_pitches, model_pitches, mic_file_name, group_name
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
 
-    print("UserData: ", user_data)
     signal = basic.SignalObj(user_data)
-    print("Signal: ", signal)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
-    print("Pitches: ", pitches)
     start = np.argmax(pitches > 0) # find index of first >0 sample
     pitches = pitches[start:] # remove anything before that index
     mic_pitches = np.ma.masked_where(pitches <1, pitches)
     mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
-    # dtw distance
     try:
-        res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
-        print("dtw distance: {}".format(res.distance))
-        print("dtw normalized distance: {}".format(res.normalized_distance))
-
         # dtw warp r_pitches to m_pitches
+        res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
         mic_pitches_warping_path = res.get_warping_path(target="reference")
         times = list(range(0, len(model_pitches), 1))
 
         # Resize array and print pitch
         len_model = len(model_pitches)
         mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
-        user_data2 = user_data.replace(".wav", "")
+        user_data = user_data.replace(".wav", "")
 
+        # Print mic graph
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
-        dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = user_data2, parent=y_axis)
-        dpg.add_button(label="Delete " + user_data2, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mic_graph)
+        dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = user_data, parent=y_axis)
+        dpg.add_button(label="Delete " + user_data, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mic_graph)
         configure_item(rec_status, show=False)
 
     except AttributeError:
-        configure_item(rec_status, default_value = "Please Extract Model Pitch first.")
+        configure_item(rec_status, default_value = "Please extract model pitch first.")
+        delete_item(group_name)
 
     except IndexError:
         configure_item(rec_status, default_value = "Recording too long. \nPlease try again.")
         ## Delete group
 
 
-
 def delete_mic_graph(sender, app_data, user_data):
+    """Deletes user's graph but does not delete buttons. Needs work."""
+
+    global group_name
+
     dpg.delete_item(user_data)
+    configure_item(group_name, show=False)
+
 
 def play_your_file(sender, app_data, user_data):
+    """Each button plays the 'mic_file_name' specific to it (e.g.: YourInput1.wav, YourInput2.wav...)."""
 
     configure_item(rec_status, show=True, default_value = "Playing...")
 
@@ -251,13 +269,6 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     rec_status = dpg.add_text(show = False)
     dpg.add_spacing(count=3)
     mic_sep1 = dpg.add_separator(show = False) 
-    # show_mic_name = dpg.add_text(show = False)
-    # play_mic = dpg.add_button(show = False, label="Play", callback = play_your_file)
-    # dpg.add_same_line()
-    # show_mic_pitch = dpg.add_button(show = False, label="Extract Your Pitch", callback= your_pitch)
-    # mic_sep2 = dpg.add_separator(show = False) 
-    # dpg.add_spacing(count=5)
-
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)

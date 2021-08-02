@@ -1,3 +1,27 @@
+# from dearpygui.dearpygui import *
+# import dearpygui.dearpygui as dpg
+
+# def del_group(sender, app_data, user_data):
+#     delete_item("Button1")
+#     delete_item("Group1")
+
+# with window(label="DearPyGui"):
+#     add_button(label="Button1")
+#     add_button(label="Button2")
+
+#     add_same_line()
+#     add_button(label="Button3", callback=del_group)
+
+#     add_button(label="Button4")
+#     add_button(label="Button5")
+#     add_same_line()
+
+#     with group(label="Group1"):
+#         add_button(label="Button6")
+#         add_button(label="Button7")
+
+# start_dearpygui()
+
 import dearpygui.dearpygui as dpg
 
 # pregenerate ids
