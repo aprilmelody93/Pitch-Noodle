@@ -105,8 +105,6 @@ def record_mic(sender, data):
 
     global mic_file_name, mic_pitchesm, recording_counter
 
-    configure_item(rec_status, show=True, default_value = "Recording...")
-
     p = pyaudio.PyAudio()
 
     # open stream
@@ -127,6 +125,8 @@ def record_mic(sender, data):
 
     mic_file_name = f'Your Input {recording_counter}.wav'
     mic_pitches = []
+
+    configure_item(rec_status, show=True, default_value = "Recording...")
 
     while True:
         try:
@@ -151,20 +151,25 @@ def record_mic(sender, data):
     wf.close()
 
 def stop_mic(sender, data):
+    global mic_file_name
+
     configure_item(rec_status, show=True, default_value = "Recording completed!")
     configure_item(mic_sep1, show = True)
-    configure_item(mic_sep2, show = True)
-    configure_item(show_mic_name, default_value=mic_file_name, show=True)
-    configure_item(play_mic, show = True)
-    configure_item(show_mic_pitch, show = True)
+
+    dpg.add_text(mic_file_name, parent=user_nav_bar)
+    dpg.add_button(label="Play", callback = play_your_file, parent=user_nav_bar, user_data=mic_file_name)
+    dpg.add_same_line(parent=user_nav_bar)
+    dpg.add_button(label="Extract Your Pitch", callback= your_pitch, parent=user_nav_bar)
+    dpg.add_spacing(count=5, parent=user_nav_bar)
+
 
 def your_pitch(sender, user_data):
 
-    global mic_pitches, mic_file_name, model_pitches
+    global mic_pitches, model_pitches
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
 
-    signal = basic.SignalObj(mic_file_name)
+    signal = basic.SignalObj(user_data)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
@@ -174,8 +179,8 @@ def your_pitch(sender, user_data):
 
     # dtw distance
     res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
-    # print("dtw distance: {}".format(res.distance))
-    # print("dtw normalized distance: {}".format(res.normalized_distance))
+    print("dtw distance: {}".format(res.distance))
+    print("dtw normalized distance: {}".format(res.normalized_distance))
 
     # dtw warp r_pitches to m_pitches
     mic_pitches_warping_path = res.get_warping_path(target="reference")
@@ -188,9 +193,7 @@ def your_pitch(sender, user_data):
 
     if error:
         configure_item(rec_status, default_value = "Problem encountered. \nPlease record again.")
-        configure_item(play_mic, show=False)
-        configure_item(show_mic_name, show = False)
-        configure_item(show_mic_pitch, show = False)
+
 
     else:
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
@@ -200,19 +203,18 @@ def your_pitch(sender, user_data):
 
 def delete_mic_graph(sender, app_data, user_data):
     dpg.delete_item(user_data)
-    configure_item(show_mic_name, default_value = "*Crickets* Please record a new file.")
-    configure_item(play_mic, show=False)
-    configure_item(show_mic_pitch, show = False)
+    # configure_item(show_mic_name, default_value = "*Crickets* Please record a new file.")
+    # configure_item(play_mic, show=False)
+    # configure_item(show_mic_pitch, show = False)
 
-def play_your_file(sender, data):
-    global mic_file_name
+def play_your_file(sender, app_data, user_data):
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-    print(mic_file_name)
+    print("user data: ", user_data)
     configure_item(rec_status, show=True, default_value = "Done playing!")
 
     if mic_file_name != None:
-        playsound(mic_file_name)
+        playsound(user_data)
 
 
 ###### Nav Bar Settings ######
@@ -245,12 +247,12 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     rec_status = dpg.add_text(show = False)
     dpg.add_spacing(count=3)
     mic_sep1 = dpg.add_separator(show = False) 
-    show_mic_name = dpg.add_text(show = False)
-    play_mic = dpg.add_button(show = False, label="Play", callback = play_your_file)
-    dpg.add_same_line()
-    show_mic_pitch = dpg.add_button(show = False, label="Extract Your Pitch", callback= your_pitch)
-    mic_sep2 = dpg.add_separator(show = False) 
-    dpg.add_spacing(count=10)
+    # show_mic_name = dpg.add_text(show = False)
+    # play_mic = dpg.add_button(show = False, label="Play", callback = play_your_file)
+    # dpg.add_same_line()
+    # show_mic_pitch = dpg.add_button(show = False, label="Extract Your Pitch", callback= your_pitch)
+    # mic_sep2 = dpg.add_separator(show = False) 
+    # dpg.add_spacing(count=5)
 
 
     with dpg.theme() as theme_id:

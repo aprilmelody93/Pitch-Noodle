@@ -1,19 +1,28 @@
 import dearpygui.dearpygui as dpg
 
-dpg.setup_registries()
+# pregenerate ids
+delete_button = dpg.generate_uuid()
+secondary_window = dpg.generate_uuid()
 
-with dpg.window(label="tutorial"):
-    dpg.add_button(label="Press me")
-    dpg.draw_line((10, 10), (100, 100), color=(255, 0, 0, 255), thickness=1)
+# id's will be generated later
+new_button1 = 0
+new_button2 = 0
 
-# print children    
-print("Last root: ", dpg.get_item_children(dpg.last_root()))
+def add_buttons():
+    global new_button1, new_button2
+    new_button1 = dpg.add_button(label="New Button", before=delete_button)
+    new_button2 = dpg.add_button(label="New Button 2", parent=secondary_window)
 
-# print children in slot 1
-print("Last root slot 1: ", dpg.get_item_children(dpg.last_root(), 1))
+def delete_buttons():
+    dpg.delete_item(new_button1)
+    dpg.delete_item(new_button2)
 
-# check draw_line's slot
-print("Last item: ", dpg.get_item_slot(dpg.last_item()))
 
+with dpg.window(label="Tutorial", pos=(200, 200)):
+    dpg.add_button(label="Add Buttons", callback=add_buttons)
+    dpg.add_button(label="Delete Buttons", callback=delete_buttons, id=delete_button)
+
+with dpg.window(label="Secondary Window", id=secondary_window, pos=(100, 100)):
+    pass
 
 dpg.start_dearpygui()
