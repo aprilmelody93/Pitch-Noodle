@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 from os import error
 import numpy as np
 import amfm_decompy.pYAAPT as pYAAPT
@@ -33,7 +34,6 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
     dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 4, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -101,9 +101,9 @@ def upload_file_cb(sender, app_data, user_data):
 
 ##### Mic Pitch Callbacks ######
 
-def record_mic(sender, data):
+def record_mic(sender, app_data, user_data):
 
-    global mic_file_name, mic_pitchesm, recording_counter
+    global mic_file_name, mic_pitches, recording_counter
 
     p = pyaudio.PyAudio()
 
@@ -159,63 +159,67 @@ def stop_mic(sender, data):
     dpg.add_text(mic_file_name, parent=user_nav_bar)
     dpg.add_button(label="Play", callback = play_your_file, parent=user_nav_bar, user_data=mic_file_name)
     dpg.add_same_line(parent=user_nav_bar)
-    dpg.add_button(label="Extract Your Pitch", callback= your_pitch, parent=user_nav_bar)
+    dpg.add_button(label="Extract Your Pitch", callback= your_pitch, parent=user_nav_bar, user_data=mic_file_name)
     dpg.add_spacing(count=5, parent=user_nav_bar)
 
 
-def your_pitch(sender, user_data):
+def your_pitch(sender, app_data, user_data):
 
-    global mic_pitches, model_pitches
+    global mic_pitches, model_pitches, mic_file_name
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
 
+    print("UserData: ", user_data)
     signal = basic.SignalObj(user_data)
+    print("Signal: ", signal)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
+    print("Pitches: ", pitches)
     start = np.argmax(pitches > 0) # find index of first >0 sample
     pitches = pitches[start:] # remove anything before that index
     mic_pitches = np.ma.masked_where(pitches <1, pitches)
     mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
     # dtw distance
-    res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
-    print("dtw distance: {}".format(res.distance))
-    print("dtw normalized distance: {}".format(res.normalized_distance))
+    try:
+        res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
+        print("dtw distance: {}".format(res.distance))
+        print("dtw normalized distance: {}".format(res.normalized_distance))
 
-    # dtw warp r_pitches to m_pitches
-    mic_pitches_warping_path = res.get_warping_path(target="reference")
-    times = list(range(0, len(model_pitches), 1))
+        # dtw warp r_pitches to m_pitches
+        mic_pitches_warping_path = res.get_warping_path(target="reference")
+        times = list(range(0, len(model_pitches), 1))
 
-    # Resize array and print pitch
-    len_model = len(model_pitches)
-    mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
-    mic_file_name = mic_file_name.replace(".wav", "")
+        # Resize array and print pitch
+        len_model = len(model_pitches)
+        mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
+        user_data2 = user_data.replace(".wav", "")
 
-    if error:
-        configure_item(rec_status, default_value = "Problem encountered. \nPlease record again.")
-
-
-    else:
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
-        dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = mic_file_name, parent=y_axis)
-        dpg.add_button(label="Delete" + mic_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mic_graph)
+        dpg.add_line_series(times, mic_pitches[mic_pitches_warping_path], label = user_data2, parent=y_axis)
+        dpg.add_button(label="Delete " + user_data2, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mic_graph)
         configure_item(rec_status, show=False)
+
+    except AttributeError:
+        configure_item(rec_status, default_value = "Please Extract Model Pitch first.")
+
+    except IndexError:
+        configure_item(rec_status, default_value = "Recording too long. \nPlease try again.")
+        ## Delete group
+
+
 
 def delete_mic_graph(sender, app_data, user_data):
     dpg.delete_item(user_data)
-    # configure_item(show_mic_name, default_value = "*Crickets* Please record a new file.")
-    # configure_item(play_mic, show=False)
-    # configure_item(show_mic_pitch, show = False)
 
 def play_your_file(sender, app_data, user_data):
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-    print("user data: ", user_data)
-    configure_item(rec_status, show=True, default_value = "Done playing!")
 
     if mic_file_name != None:
         playsound(user_data)
 
+    configure_item(rec_status, show=True, default_value = "Done playing!")
 
 ###### Nav Bar Settings ######
 
