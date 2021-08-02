@@ -156,7 +156,7 @@ def record_mic(sender, app_data, user_data):
     wf.close()
 
 def stop_mic(sender, data):
-    """Creates buttons specific to the mic_file_name (.wav files) that are created. Grouping needs work."""
+    """Creates buttons specific to the mic_file_name (e.g.: YourInput1.wav, YourInput2.wav...). Grouping needs work."""
 
     global mic_file_name, recording_counter, group_name
 
