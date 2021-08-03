@@ -46,7 +46,10 @@ file_path = None
 mic_file_name = None
 recording_counter = 0
 group_id = 0
+
 tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = "C:/Users/apriltan/Documents/GitHub/IntonationApp")
+path = os.getcwd()
+dir = os.listdir(path)
 
 ##### Model Pitch Callbacks ######
 
@@ -132,13 +135,11 @@ def record_mic(sender, app_data, user_data):
         recording_counter += 1
 
     mic_file_name = f'Your Input {recording_counter}.wav'
+    mic_file_path = os.path.join(path, dir[7], mic_file_name)
     mic_pitches = []
 
-    path = os.getcwd()
-    dir = os.listdir(path)
     print("Path: ", path)
     print("Files and Dirs: ", dir[7])
-    mic_file_path = os.path.join(path, dir[7], mic_file_name)
     print("Full mic path: ", mic_file_path)
 
     configure_item(rec_status, show=True, default_value = "Recording...")
@@ -174,14 +175,15 @@ def stop_mic(sender, data):
     configure_item(mic_sep1, show = True)
 
     mic_file_name = f'Your Input {recording_counter}.wav'
+    mic_file_path = os.path.join(path, dir[7], mic_file_name)
 
     group_id = None
 
     with group(parent=user_nav_bar) as group_id:
         dpg.add_text(mic_file_name)
-        dpg.add_button(label="Play", callback = play_your_file, user_data=mic_file_name)
+        dpg.add_button(label="Play", callback = play_your_file, user_data=mic_file_path)
         dpg.add_same_line()
-        dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id])
+        dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
         dpg.add_spacing(count=5)
 
 def your_pitch(sender, app_data, user_data):
@@ -194,7 +196,7 @@ def your_pitch(sender, app_data, user_data):
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
 
-    signal = basic.SignalObj(mic_file_name)
+    signal = basic.SignalObj(mic_file_path)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
