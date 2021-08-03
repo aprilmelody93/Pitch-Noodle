@@ -169,7 +169,7 @@ def record_mic(sender, app_data, user_data):
 def stop_mic(sender, data):
     """Creates buttons specific to the mic_file_name (e.g.: YourInput1.wav, YourInput2.wav...). Grouping needs work."""
 
-    global mic_file_name, recording_counter, group_id
+    global recording_counter, group_id
 
     configure_item(rec_status, show=True, default_value = "Recording completed! \nPlease extract your pitch.")
     configure_item(mic_sep1, show = True)
@@ -186,17 +186,28 @@ def stop_mic(sender, data):
         dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
         dpg.add_spacing(count=5)
 
+def play_your_file(sender, app_data, user_data):
+    """Each button plays the 'mic_file_name' specific to it (e.g.: YourInput1.wav, YourInput2.wav...)."""
+
+    configure_item(rec_status, show=True, default_value = "Playing...")
+
+    if user_data != None:
+        playsound(user_data)
+
+    configure_item(rec_status, show=True, default_value = "Done playing!")
+
 def your_pitch(sender, app_data, user_data):
     """Takes in user_data (aka 'mic_file_name' which points to specific .wav file). 
     Extracts .wav file as mic_pitch. 
     dtwalign module warps mic_pitch to model_pitch for overlapping purposes.
     Warping process prone to IndexError; solution is to shorten recording time. """
 
-    global mic_pitches, model_pitches
+    global model_pitches
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
+    print("USERDATA: ", user_data)
 
-    signal = basic.SignalObj(mic_file_path)
+    signal = basic.SignalObj(user_data[2])
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
     pitches = pitches.samp_values
     start = np.argmax(pitches > 0) # find index of first >0 sample
@@ -235,16 +246,6 @@ def delete_mic_graph(sender, app_data, user_data):
 
     delete_item(user_data[0])
     delete_item(user_data[1])
-
-def play_your_file(sender, app_data, user_data):
-    """Each button plays the 'mic_file_name' specific to it (e.g.: YourInput1.wav, YourInput2.wav...)."""
-
-    configure_item(rec_status, show=True, default_value = "Playing...")
-
-    if mic_file_name != None:
-        playsound(user_data)
-
-    configure_item(rec_status, show=True, default_value = "Done playing!")
 
 ###### Nav Bar Settings ######
 
