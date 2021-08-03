@@ -1,11 +1,13 @@
-# IntonationApp
+# IntonationApp (User's Guide)
 
-COMPLETE
-- Pitch extraction of model file works
-- Data plotted using Matplotlib
-- PyAudio detects microphone stream and saves as array
+This is a simple intonation app that extracts, draws, and overlays a learner's pitch on top of a model speaker's pitch. The goal of this app is to help language learners recognize the difference in pitch movements in order to better help them learn the pitch of the language they are learning. 
 
-INCOMPLETE
-- Arrays different sizes
-- Plot mic_pitch and model_pitch on main.py
+# Requirements 
+Here are a list of requirements needed to run the program. These requirements are also listed in Requirements.txt
 
+* Python 3.7 or higher
+* Aubio
+* dtwalign
+
+# Installation
+The only file you need to run in main.py. Use pip to install all required third-party packages listed above: `pip -r requirements.txt`
