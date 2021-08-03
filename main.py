@@ -187,12 +187,11 @@ def stop_mic(sender, data):
         dpg.add_spacing(count=5)
 
 def play_your_file(sender, app_data, user_data):
-    """Each button plays the 'mic_file_name' specific to it (e.g.: YourInput1.wav, YourInput2.wav...)."""
+    """Each button plays the user_data (aka 'mic_file_path' taken from line 184) specific to it.
+    Clicking on this button currently causes the temporary directory to not remove itself. """
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-    audio = user_data
     playsound(user_data)
-    os.remove(audio)
     configure_item(rec_status, show=True, default_value = "Done playing!")
 
 def your_pitch(sender, app_data, user_data):
