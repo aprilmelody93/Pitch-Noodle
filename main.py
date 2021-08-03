@@ -138,9 +138,9 @@ def record_mic(sender, app_data, user_data):
     mic_file_path = os.path.join(path, dir[7], mic_file_name)
     mic_pitches = []
 
-    print("Path: ", path)
-    print("Files and Dirs: ", dir[7])
-    print("Full mic path: ", mic_file_path)
+    print("\nPath: ", path)
+    print("Files and Directories: ", dir[7])
+    print("Full mic path: ", mic_file_path, "\n")
 
     configure_item(rec_status, show=True, default_value = "Recording...")
 
@@ -167,7 +167,7 @@ def record_mic(sender, app_data, user_data):
     wf.close()
 
 def stop_mic(sender, data):
-    """Creates buttons specific to the mic_file_name (e.g.: YourInput1.wav, YourInput2.wav...). Grouping needs work."""
+    """Creates buttons specific to the mic_file_name (e.g.: YourInput1.wav, YourInput2.wav...) upon ending recording."""
 
     global recording_counter, group_id
 
@@ -181,7 +181,7 @@ def stop_mic(sender, data):
 
     with group(parent=user_nav_bar) as group_id:
         dpg.add_text(mic_file_name)
-        dpg.add_button(label="Play", callback = play_your_file, user_data=mic_file_path)
+        dpg.add_button(label="Play", callback = play_your_file, user_data = mic_file_path)
         dpg.add_same_line()
         dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
         dpg.add_spacing(count=5)
@@ -190,10 +190,9 @@ def play_your_file(sender, app_data, user_data):
     """Each button plays the 'mic_file_name' specific to it (e.g.: YourInput1.wav, YourInput2.wav...)."""
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-
-    if user_data != None:
-        playsound(user_data)
-
+    audio = user_data
+    playsound(user_data)
+    os.remove(audio)
     configure_item(rec_status, show=True, default_value = "Done playing!")
 
 def your_pitch(sender, app_data, user_data):
@@ -205,7 +204,6 @@ def your_pitch(sender, app_data, user_data):
     global model_pitches
 
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
-    print("USERDATA: ", user_data)
 
     signal = basic.SignalObj(user_data[2])
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
