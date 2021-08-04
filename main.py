@@ -47,7 +47,7 @@ mic_file_name = None
 recording_counter = 0
 group_id = 0
 
-tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = "C:/Users/apriltan/Documents/GitHub/IntonationApp")
+tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = ".")
 path = os.getcwd()
 dir = os.listdir(path)
 
@@ -308,3 +308,10 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.set_item_font(tips, secondary_font)
 
 dpg.start_dearpygui()
+
+# after app is done, force cleanup of temp folder
+print("Trying to clean up temp folder", tmpdir.name)
+try:
+    tmpdir.cleanup()
+except Exception as e:
+    print(e, "- please remove folder manually!")
