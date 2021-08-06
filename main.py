@@ -1,7 +1,6 @@
 import numpy as np
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
-import matplotlib.pyplot as plt
 import dtwalign
 import mouse
 from dearpygui.dearpygui import *
@@ -13,7 +12,6 @@ import pyaudio
 import wave
 import tempfile
 import os
-import shutil
 
 ###############################   GUI   #########################################
 
@@ -196,32 +194,22 @@ def play_your_file(sender, app_data, user_data):
     Clicking on this button currently causes the temporary directory to not remove itself. """
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-    # playsound(user_data)
+
     chunk = 1024  
-
-    #open a wav format music  
     f = wave.open(user_data,"rb")  
-
-    #instantiate PyAudio  
     p = pyaudio.PyAudio()  
-    #open stream  
     stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
                     channels = f.getnchannels(),  
                     rate = f.getframerate(),  
                     output = True)  
-    #read data  
     data = f.readframes(chunk)  
 
-    #play stream  
     while data:  
         stream.write(data)  
         data = f.readframes(chunk)  
 
-    #stop stream  
     stream.stop_stream()  
     stream.close()  
-
-    #close PyAudio  
     p.terminate()  
     
     configure_item(rec_status, show=True, default_value = "Done playing!")
@@ -344,7 +332,6 @@ dpg.start_dearpygui()
 # after app is done, force cleanup of temp folder
 print("Trying to clean up temp folder", tmpdir.name)
 try:
-    print(os.path)
     tmpdir.cleanup()
 except Exception as e:
     print(e, "- please remove folder manually!")
