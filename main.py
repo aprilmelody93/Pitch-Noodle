@@ -7,7 +7,6 @@ from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 import numpy.ma as ma
-from playsound import playsound
 import pyaudio
 import wave
 import tempfile
@@ -32,7 +31,7 @@ with dpg.theme(default_theme=True) as series_theme:
     dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
     dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
+    # dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -45,6 +44,7 @@ file_path = None
 mic_file_name = None
 recording_counter = 0
 group_id = 0
+times = None
 
 tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = ".")
 
@@ -53,7 +53,7 @@ tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = ".")
 def plot_model(sender, app_data, user_data):
     """Takes in times and model_pitches; return a line series."""
 
-    global model_pitches, model_file_name, file_path
+    global model_pitches, model_file_name, file_path, times
 
     model_file_name = model_file_name.replace(".wav", "")
     dpg.fit_axis_data(x_axis)
@@ -77,12 +77,28 @@ def delete_mod_graph(sender, app_data, user_data):
 def play_file(sender, app_data):
     """Takes in global file_path (derived from model_file_name); plays the sound file."""
 
-    global file_path
+    global file_path, times
 
     if file_path != None:
         configure_item(status, show = True, default_value = "Playing file...")
-        playsound(file_path)
-        configure_item(status, show = True, default_value = "Done playing!")
+    chunk = 1024  
+    f = wave.open(file_path,"rb")  
+    p = pyaudio.PyAudio()  
+    stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
+                    channels = f.getnchannels(),  
+                    rate = f.getframerate(),  
+                    output = True)  
+    data = f.readframes(chunk)  
+
+    while data:  
+        stream.write(data)  
+        data = f.readframes(chunk)
+
+    stream.stop_stream()  
+    stream.close()  
+    p.terminate()  
+
+    configure_item(status, show = True, default_value = "Done playing!")
 
 
 def upload_file_cb(sender, app_data, user_data):
@@ -193,6 +209,7 @@ def play_your_file(sender, app_data, user_data):
     """Each button plays the user_data (aka 'mic_file_path' taken from line 184) specific to it.
     Clicking on this button currently causes the temporary directory to not remove itself. """
 
+    global times
     configure_item(rec_status, show=True, default_value = "Playing...")
 
     chunk = 1024  
@@ -206,7 +223,7 @@ def play_your_file(sender, app_data, user_data):
 
     while data:  
         stream.write(data)  
-        data = f.readframes(chunk)  
+        data = f.readframes(chunk)
 
     stream.stop_stream()  
     stream.close()  
