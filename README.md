@@ -16,7 +16,11 @@ Here are a list of requirements needed to run the program. No specific versions 
 * tempfile
 * os
 
-# Installation and Usage
+# Running as .exe file (recommended)
+In the dist folder, click on the main.exe file. This should run the application on your computer without the need to install anything else. 
+Note: This does not work on a Mac and has only been tested on Windows 10. 
+
+# Running as .py file
 The only file you need to run in main.py. Use pip to install all required third-party packages listed above: `pip -r requirements.txt`
 
 If using an IDE such as Visual Studio Code or Sublime, simply run the main.py file
