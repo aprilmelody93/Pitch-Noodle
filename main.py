@@ -13,6 +13,7 @@ import pyaudio
 import wave
 import tempfile
 import os
+import shutil
 
 ###############################   GUI   #########################################
 
@@ -48,8 +49,6 @@ recording_counter = 0
 group_id = 0
 
 tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = ".")
-path = os.getcwd()
-dir = os.listdir(path)
 
 ##### Model Pitch Callbacks ######
 
@@ -134,12 +133,18 @@ def record_mic(sender, app_data, user_data):
     elif recording_counter != 0:
         recording_counter += 1
 
+    path = os.getcwd()
+    dir = os.listdir(path)
+
+    print("Current path: ", path)
+    print("Current dir: ", dir)    
+
     mic_file_name = f'Your Input {recording_counter}.wav'
-    mic_file_path = os.path.join(path, dir[7], mic_file_name)
+    mic_file_path = os.path.join(tmpdir.name, mic_file_name)
     mic_pitches = []
 
     print("\nPath: ", path)
-    print("Files and Directories: ", dir[7])
+    print("Dir path: ", tmpdir.name)
     print("Full mic path: ", mic_file_path, "\n")
 
     configure_item(rec_status, show=True, default_value = "Recording...")
@@ -175,7 +180,7 @@ def stop_mic(sender, data):
     configure_item(mic_sep1, show = True)
 
     mic_file_name = f'Your Input {recording_counter}.wav'
-    mic_file_path = os.path.join(path, dir[7], mic_file_name)
+    mic_file_path = os.path.join(tmpdir.name, mic_file_name)
 
     group_id = None
 
@@ -191,7 +196,34 @@ def play_your_file(sender, app_data, user_data):
     Clicking on this button currently causes the temporary directory to not remove itself. """
 
     configure_item(rec_status, show=True, default_value = "Playing...")
-    playsound(user_data)
+    # playsound(user_data)
+    chunk = 1024  
+
+    #open a wav format music  
+    f = wave.open(user_data,"rb")  
+
+    #instantiate PyAudio  
+    p = pyaudio.PyAudio()  
+    #open stream  
+    stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
+                    channels = f.getnchannels(),  
+                    rate = f.getframerate(),  
+                    output = True)  
+    #read data  
+    data = f.readframes(chunk)  
+
+    #play stream  
+    while data:  
+        stream.write(data)  
+        data = f.readframes(chunk)  
+
+    #stop stream  
+    stream.stop_stream()  
+    stream.close()  
+
+    #close PyAudio  
+    p.terminate()  
+    
     configure_item(rec_status, show=True, default_value = "Done playing!")
 
 def your_pitch(sender, app_data, user_data):
@@ -312,6 +344,7 @@ dpg.start_dearpygui()
 # after app is done, force cleanup of temp folder
 print("Trying to clean up temp folder", tmpdir.name)
 try:
+    print(os.path)
     tmpdir.cleanup()
 except Exception as e:
     print(e, "- please remove folder manually!")
