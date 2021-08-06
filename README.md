@@ -7,14 +7,12 @@ Here are a list of requirements needed to run the program. No specific versions 
 
 * Python 3.7 or higher
 * numpy
-* matplotlib
 * pYAAPT
 * Aubio
 * dtwalign
 * DearPyGUI
 * PyAudio
 * Wave
-* Playsound
 * tempfile
 * os
 
@@ -41,6 +39,9 @@ Tips:
 * Delete a graph you no longer want by right clicking on the legend
 
 # Known Issues
-* The tmp file does not delete -- you will have to remove it manually to save space on your computer. To do this, go the project folder. The folder to delete is the one with the prefix "tmp_" on it. 
 * If your recording is too long, the app will ask you to re-record your audio file
 * Crashes might happen when adding additional recordings
+
+# Future Work
+* A vline series that shows users at which point of the pitch contour they are at when playing the file
+* Ability to scrub back and forth to play only specific parts of the audio file
