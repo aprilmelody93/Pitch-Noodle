@@ -12,4 +12,4 @@ This module is responsible for extracting the pitch of the .wav files, which wil
 A dynamic time warping (dtw) module that this program uses to align recordings of different lengths. This program does throws an error if the user's input is much longer than the model input. The accuracy of the aligning has not been tested and should be high on the priority list. Their homepage has a comprehensive guide on the computational mathematics behind it. https://dynamictimewarping.github.io/
 
 # pyAudio
-This module is responsible for reading, writing, and playing all .wav files in this program. Note that it is necessary to use pyAudio to open and close files. Without closing an audio file, the temporary directory will not be deleted when the program exits. 
+This module is responsible for reading, writing, and playing all .wav files in this program. Note that it is necessary to use pyAudio to open and close files. Without closing an audio file, the temporary directory will not be deleted when the program exits. Here is some documentation you might find helpful: http://people.csail.mit.edu/hubert/pyaudio/
