@@ -8,6 +8,7 @@ import dearpygui.dearpygui as dpg
 from dearpygui.core import *
 import numpy.ma as ma
 import pyaudio
+from playsound import playsound
 import wave
 import tempfile
 import os
@@ -77,28 +78,12 @@ def delete_mod_graph(sender, app_data, user_data):
 def play_file(sender, app_data):
     """Takes in global file_path (derived from model_file_name); plays the sound file."""
 
-    global file_path, times
+    global file_path
 
-    if file_path != None:
+    if file_path != None:  
         configure_item(status, show = True, default_value = "Playing file...")
-    chunk = 1024  
-    f = wave.open(file_path,"rb")  
-    p = pyaudio.PyAudio()  
-    stream = p.open(format = p.get_format_from_width(f.getsampwidth()),  
-                    channels = f.getnchannels(),  
-                    rate = f.getframerate(),  
-                    output = True)  
-    data = f.readframes(chunk)  
-
-    while data:  
-        stream.write(data)  
-        data = f.readframes(chunk)
-
-    stream.stop_stream()  
-    stream.close()  
-    p.terminate()  
-
-    configure_item(status, show = True, default_value = "Done playing!")
+        playsound(file_path)
+        configure_item(status, show = True, default_value = "Done playing!")
 
 
 def upload_file_cb(sender, app_data, user_data):
