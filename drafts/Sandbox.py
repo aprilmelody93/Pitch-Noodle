@@ -1,55 +1,28 @@
+import numpy as np
+import amfm_decompy.pYAAPT as pYAAPT
+import amfm_decompy.basic_tools as basic
 from dearpygui.dearpygui import *
-
-def del_group(sender, app_data, user_data):
-    # delete_item(Button1)
-    print(group1)
-    delete_item(group1)
-
-with window(label="DearPyGui"):
-    Button1 = add_button(label="Button1")
-    add_button(label="Button2")
-
-    add_same_line()
-    add_button(label="Button3", callback=del_group)
-
-    add_button(label="Button4")
-    add_button(label="Button5")
-    add_same_line()
-
-    # group_name = generate_uuid()
-    # print("group name: ", group_name)
-
-    with group() as group1:
-        add_button(label="Button6")
-        add_button(label="Button7")
-
-start_dearpygui()
-
-# import dearpygui.dearpygui as dpg
-
-# # pregenerate ids
-# delete_button = dpg.generate_uuid()
-# secondary_window = dpg.generate_uuid()
-
-# # id's will be generated later
-# new_button1 = 0
-# new_button2 = 0
-
-# def add_buttons():
-#     global new_button1, new_button2
-#     new_button1 = dpg.add_button(label="New Button", before=delete_button)
-#     new_button2 = dpg.add_button(label="New Button 2", parent=secondary_window)
-
-# def delete_buttons():
-#     dpg.delete_item(new_button1)
-#     dpg.delete_item(new_button2)
+from dearpygui.core import *
+import numpy.ma as ma
+from matplotlib import pyplot as plt
 
 
-# with dpg.window(label="Tutorial", pos=(200, 200)):
-#     dpg.add_button(label="Add Buttons", callback=add_buttons)
-#     dpg.add_button(label="Delete Buttons", callback=delete_buttons, id=delete_button)
+signal = basic.SignalObj('model_files/E_Yao2.wav')
+pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
+pitches.set_values(pitches.samp_values, len(pitches.values), interp_tech='spline')
+model_pitches = pitches.values
+print(type(model_pitches))
+model_pitches = ma.masked_where(model_pitches <=0, model_pitches)
+print(type(model_pitches))
+# model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
+times = list(range(0, len(model_pitches), 1))
+plt.plot(times, model_pitches, color='red')
 
-# with dpg.window(label="Secondary Window", id=secondary_window, pos=(100, 100)):
-#     pass
 
-# dpg.start_dearpygui()
+plt.xlabel('samples', fontsize =18)
+plt.ylabel('pitch (Hz)', fontsize=18)
+plt.legend(loc='upper right')
+axes = plt.gca()
+# axes.set_ylim(50, 500)
+
+plt.show()

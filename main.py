@@ -96,10 +96,9 @@ def upload_file_cb(sender, app_data, user_data):
     model_file_name = app_data["file_name_buffer"]
     signal = basic.SignalObj(file_path)
     pitches = pYAAPT.yaapt(signal, f0_min=50.0, f0_max=500.0, frame_length=40, tda_frame_length=40, frame_space=5)
-    pitches = pitches.samp_values
-    start = np.argmax(pitches > 0) # find index of first >0 sample
-    pitches = pitches[start:] # remove anything before that index
-    model_pitches = ma.masked_where (pitches <=0, pitches)
+    pitches.set_values(pitches.samp_values, len(pitches.values), interp_tech='spline')
+    model_pitches = pitches.values
+    model_pitches = ma.masked_where (model_pitches <=0, model_pitches)
     model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
 
     configure_item(status, show=False)
