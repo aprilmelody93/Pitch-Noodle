@@ -9,6 +9,7 @@ Aubio
 dtwalign
 DearPyGUI
 PyAudio
+playsound
 Wave
 tempfile
 os
