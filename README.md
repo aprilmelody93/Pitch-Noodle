@@ -47,7 +47,6 @@ Tips:
 
 # Known Issues
 * If your recording is too long, the app will ask you to re-record your audio file
-* Crashes might happen when adding additional recordings
 
 # Future Work
 * A vline series that shows users at which point of the pitch contour they are at when playing the file
