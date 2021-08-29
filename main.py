@@ -1,8 +1,6 @@
-from operator import mod
 import numpy as np
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
-import dtwalign
 import mouse
 from dearpygui.dearpygui import *
 import dearpygui.dearpygui as dpg
@@ -81,7 +79,7 @@ def delete_mod_graph(sender, app_data, user_data):
 def play_file(sender, app_data):
     """Takes in global file_path (derived from model_file_name); plays the sound file."""
 
-    global file_path, times
+    global file_path
 
     if file_path != None:  
         configure_item(status, show = True, default_value = "Playing file...")
@@ -101,8 +99,9 @@ def upload_file_cb(sender, app_data, user_data):
     pitches = pYAAPT.yaapt(signal)
     pitches.set_values(pitches.samp_values, len(pitches.values), interp_tech='spline')
     model_pitches = pitches.values
-    model_pitches = ma.masked_where (model_pitches <=0, model_pitches)
-    model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
+    model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN 
+    model_pitches = model_pitches[~np.isnan(model_pitches)] #removing NaN vlaues
+    print(len(model_pitches))
 
     configure_item(status, show=False)
     configure_item(play_model, show=True)
@@ -137,9 +136,16 @@ def record_mic(sender, app_data, user_data):
     path = os.getcwd()
     dir = os.listdir(path)
 
+    print("Current path: ", path)
+    print("Current dir: ", dir)    
+
     mic_file_name = f'Your Input {recording_counter}.wav'
     mic_file_path = os.path.join(tmpdir.name, mic_file_name)
     mic_pitches = []
+
+    print("\nPath: ", path)
+    print("Dir path: ", tmpdir.name)
+    print("Full mic path: ", mic_file_path, "\n")
 
     configure_item(rec_status, show=True, default_value = "Recording...")
 
@@ -225,22 +231,14 @@ def your_pitch(sender, app_data, user_data):
     pitches = pYAAPT.yaapt(signal)
     pitches.set_values(pitches.samp_values, len(pitches.values), interp_tech='spline')
     mic_pitches = pitches.values
-    mic_pitches = ma.masked_where (mic_pitches <=0, mic_pitches)
-    mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN so that it doesn't plot
-    print('Checkpoint#1')
+    mic_pitches[mic_pitches <= 0] = np.nan #masking 0 values with NaN 
+    mic_pitches = mic_pitches[~np.isnan(mic_pitches)] #removing nan vlaues
+    print(len(mic_pitches))
 
     try:
-        # # dtw warp r_pitches to m_pitches
-        # res = dtwalign.dtw(model_pitches, mic_pitches, step_pattern="symmetricP2")
-        # mic_pitches_warping_path = res.get_warping_path(target="reference")
-        # times = list(range(0, len(model_pitches), 1))
-
-        # # Resize array and print pitch
-        # len_model = len(model_pitches)
-        # mic_pitches = mic_pitches[0:len_model] # Resize because array size has to be the same
+        times = list(range(0, len(mic_pitches), 1))
         mic_file_name2 = mic_file_name.replace(".wav", "")
 
-        # Print mic graph
         graph_id = generate_uuid()
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
         dpg.add_line_series(times, mic_pitches, label = mic_file_name2, parent=y_axis)
@@ -312,9 +310,9 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.add_text("3. Right click on the legend to delete.")
     dpg.add_spacing(count=5)
 
-    with dpg.plot(label="Intonation Plot", height=600, width=1200):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
         dpg.add_plot_legend()
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label = "", no_tick_labels = True, no_gridlines=True)
+        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
     with dpg.theme() as theme_plot:
