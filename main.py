@@ -15,12 +15,12 @@ import os
 ###############################   GUI   #########################################
 
 ##### Global theme and setup #####
-dpg.enable_docking()
-dpg.setup_viewport()
-dpg.set_viewport_title(title='Welcome')
-dpg.set_viewport_width(1600)
-dpg.set_viewport_height(900)
-dpg.setup_registries()
+
+setup_viewport()
+set_viewport_title(title='Welcome')
+set_viewport_width(1600)
+set_viewport_height(900)
+setup_registries()
 
 
 with dpg.font_registry():
@@ -28,10 +28,14 @@ with dpg.font_registry():
     secondary_font = dpg.add_font("fonts\Playfair.ttf", 30)
 
 with dpg.theme(default_theme=True) as series_theme:
-    dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 107, 53), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (251, 139, 36), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_Button, (245, 184, 65), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (213, 146, 11), category=dpg.mvThemeCat_Core)
     dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
     # dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
+
+with dpg.theme() as not_enabled:
+    dpg.add_theme_color(dpg.mvThemeCol_Button, (213, 146, 11), category=dpg.mvThemeCat_Core)
+    dpg.add_theme_color(dpg.mvThemeCol_Text, (97, 66, 5), category=dpg.mvThemeCat_Core)
 
 with dpg.value_registry():
     m_pitches = dpg.add_float_vect_value(default_value=[])
@@ -127,6 +131,9 @@ def record_mic(sender, app_data, user_data):
 
     global mic_file_name, mic_pitches, recording_counter
 
+    set_item_theme(r_button, not_enabled)
+    set_item_theme(s_button, series_theme)
+
     p = pyaudio.PyAudio()
 
     # open stream
@@ -188,6 +195,8 @@ def stop_mic(sender, data):
 
     global recording_counter, group_id
 
+    set_item_theme(r_button, series_theme)
+    set_item_theme(s_button, not_enabled)
     configure_item(rec_status, show=True, default_value = "Recording completed! \nPlease extract your pitch.")
     configure_item(mic_sep1, show = True)
 
@@ -305,11 +314,11 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_spacing(count=3)
 
     record = dpg.add_text("Your Input")
-    dpg.add_text("Click on the Record button to start,\n and the Stop button to stop.")
+    dpg.add_text("Click on the Record button to start,\nand the Stop button to stop.")
     dpg.add_spacing(count=3)
-    dpg.add_button(label="Record", callback = record_mic)
+    r_button = dpg.add_button(label="Record", callback = record_mic)
     dpg.add_same_line()
-    dpg.add_button(label="Stop", callback = stop_mic)
+    s_button = dpg.add_button(label="Stop", callback = stop_mic)
     dpg.add_spacing(count=3)
     rec_status = dpg.add_text(show = False)
     dpg.add_spacing(count=3)
@@ -317,11 +326,12 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
     with dpg.theme() as theme_id:
         dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (62, 146, 204), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (62, 146, 204), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (173, 217, 244), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (173, 217, 244), category=dpg.mvThemeCat_Core)
         dpg.add_theme_color(dpg.mvThemeCol_Text, (0, 0, 0), category=dpg.mvThemeCat_Core)
-            
+  
     dpg.set_item_theme(user_nav_bar, theme_id)
+    dpg.set_item_theme(s_button, not_enabled)         
     dpg.set_item_font(welcome, secondary_font)
     dpg.set_item_font(record, secondary_font)
 
@@ -329,10 +339,10 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
 with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
 
-    tips = dpg.add_text("Here are some basic tips:")
-    dpg.add_text("1. Scroll with your mouse button or click and drag left and right to explore.")
-    dpg.add_text("2.Left click on the legend to show/hide.")
-    dpg.add_text("3. Right click on the legend to delete.")
+    tips = dpg.add_text("   Here are some basic tips:")
+    dpg.add_text("      1. Explore the graph with your mouse! Zoom in and out, move up and down.")
+    dpg.add_text("      2. Left click on the legend to show/hide a plot.")
+    dpg.add_text("      3. Right click on the legend to delete a plot you are done with.")
     dpg.add_spacing(count=5)
 
     with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
@@ -341,8 +351,8 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
     with dpg.theme() as theme_plot:
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (28, 93, 153), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (28, 93, 153), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (71, 108, 155), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (71, 108, 155), category=dpg.mvThemeCat_Core)
     
     dpg.set_item_theme(plot_window, theme_plot)
     dpg.set_item_font(tips, secondary_font)
