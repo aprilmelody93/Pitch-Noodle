@@ -53,9 +53,10 @@ tmpdir = tempfile.TemporaryDirectory(prefix = "tmp_", dir = ".")
 def plot_model(sender, app_data, user_data):
     """Takes in times and model_pitches; return a line series."""
 
-    global model_pitches, model_file_name, file_path, times
+    model_file_name = user_data[0].replace(".wav", "")
+    model_pitches = user_data[2]
+    groupmod_id = user_data[3]
 
-    model_file_name = model_file_name.replace(".wav", "")
     dpg.fit_axis_data(x_axis)
     dpg.fit_axis_data(y_axis)
     dpg.set_axis_limits_auto(x_axis)
@@ -64,22 +65,26 @@ def plot_model(sender, app_data, user_data):
     times = list(range(0, len(model_pitches), 1))
     configure_item(status, show = True, default_value = "Extracting model pitch...")
     dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
-    dpg.add_button(label="Delete " + model_file_name, user_data = dpg.last_item(), parent=dpg.last_item(), callback=delete_mod_graph)
+    dpg.add_button(label="Delete " + model_file_name, user_data = [dpg.last_item(), model_file_name, groupmod_id], parent=dpg.last_item(), callback=delete_mod_graph)
     configure_item(status, show = True, default_value = "Model pitch extracted!")
 
 def delete_mod_graph(sender, app_data, user_data):
-    """Takes in user_data; deletes line series."""
+    """Takes in user_data; deletes line series and file upload."""
 
-    dpg.delete_item(user_data)
-    configure_item(status, default_value = "*Crickets* Please upload a file.")
-    configure_item(play_model, show=False)
-    configure_item(show_model_name, show=False)
-    configure_item(model_pitch, show = False)
+    delete_item(user_data[0])
+    configure_item(status, default_value = f'{user_data[1]}.wav deleted!')
+    delete_item(user_data[2])
 
-def play_file(sender, app_data):
+def delete_upload(sender, app_data, user_data):
+    """Takes in user_data; deletes file upload."""
+
+    delete_item(user_data[3])
+
+def play_file(sender, app_data, user_data):
     """Takes in global file_path (derived from model_file_name); plays the sound file."""
 
-    global file_path
+    file_path = user_data
+    print('FILEPATH:', file_path)
 
     if file_path != None:  
         configure_item(status, show = True, default_value = "Playing file...")
@@ -90,10 +95,11 @@ def play_file(sender, app_data):
 def upload_file_cb(sender, app_data, user_data):
     """Uploads selected file; creates model_file_name and file_path; extracts pitch from file_path. Returns model_pitches."""
 
-    global model_pitches, model_file_name, file_path
+    # global model_pitches, model_file_name, file_path
 
     configure_item(status, show = True, default_value = "Uploading...")
     file_path = app_data["file_path_name"]
+    print('file_path:', file_path)
     model_file_name = app_data["file_name_buffer"]
     signal = basic.SignalObj(file_path)
     pitches = pYAAPT.yaapt(signal)
@@ -101,12 +107,18 @@ def upload_file_cb(sender, app_data, user_data):
     model_pitches = pitches.values
     model_pitches[model_pitches <= 0] = np.nan #masking 0 values with NaN 
     model_pitches = model_pitches[~np.isnan(model_pitches)] #removing NaN vlaues
-    print(len(model_pitches))
 
-    configure_item(status, show=False)
-    configure_item(play_model, show=True)
-    configure_item(show_model_name, default_value=model_file_name, show=True)
-    configure_item(model_pitch, show = True)
+    groupmod_id = None
+
+    with group(parent = user_nav_bar, before=record) as groupmod_id:
+        configure_item(status, show=False)
+        dpg.add_text(model_file_name)
+        dpg.add_button(label='Play', callback=play_file, user_data=file_path)
+        dpg.add_same_line()
+        dpg.add_button(label="Extract Model Pitch", callback = plot_model, user_data = [model_file_name, file_path, model_pitches, groupmod_id])
+        dpg.add_same_line()
+        dpg.add_button(label="Delete", callback = delete_upload, user_data = [model_file_name, file_path, model_pitches, groupmod_id])        
+        dpg.add_spacing(count=3)
 
 ##### Mic Pitch Callbacks ######
 
@@ -189,7 +201,10 @@ def stop_mic(sender, data):
         dpg.add_button(label="Play", callback = play_your_file, user_data = mic_file_path)
         dpg.add_same_line()
         dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
+        dpg.add_same_line()
+        dpg.add_button(label="Delete", callback= delete_recording, user_data=[mic_file_name, group_id, mic_file_path])
         dpg.add_spacing(count=5)
+
 
 def play_your_file(sender, app_data, user_data):
     """Each button plays the user_data (aka 'mic_file_path' taken from line 184) specific to it.
@@ -239,7 +254,11 @@ def your_pitch(sender, app_data, user_data):
         times = list(range(0, len(mic_pitches), 1))
         mic_file_name2 = mic_file_name.replace(".wav", "")
 
-        graph_id = generate_uuid()
+        dpg.fit_axis_data(x_axis)
+        dpg.fit_axis_data(y_axis)
+        dpg.set_axis_limits_auto(x_axis)
+        dpg.set_axis_limits(y_axis, ymin=0, ymax=500)
+
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
         dpg.add_line_series(times, mic_pitches, label = mic_file_name2, parent=y_axis)
         dpg.add_button(label="Delete " + mic_file_name2, user_data = [dpg.last_item(), group_id], parent=dpg.last_item(), callback=delete_mic_graph)
@@ -254,9 +273,15 @@ def your_pitch(sender, app_data, user_data):
         delete_item(group_id)
 
 def delete_mic_graph(sender, app_data, user_data):
-    """Deletes user's graph but does not delete buttons. Needs work."""
+    """Deletes user's graph and user's mic input."""
+    
 
     delete_item(user_data[0])
+    delete_item(user_data[1])
+
+def delete_recording(sender, app_data, user_data):
+    """Deletes user's graph and user's mic input."""
+
     delete_item(user_data[1])
 
 ###### Nav Bar Settings ######
@@ -265,7 +290,7 @@ with dpg.file_dialog(directory_selector=False, show = False, callback=upload_fil
     dpg.add_file_extension(".wav")
     
 with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
-    welcome = dpg.add_text("Model Input")
+    welcome = dpg.add_text("Tone Training")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
     upload_button = dpg.add_button(label='Upload file', callback= lambda: dpg.show_item(file_dialog_id))
@@ -277,7 +302,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
     dpg.add_same_line()
     model_pitch = dpg.add_button(label="Extract Model Pitch", user_data=m_pitches, callback=plot_model, show=False)
     dpg.add_separator() 
-    dpg.add_spacing(count=10)
+    dpg.add_spacing(count=3)
 
     record = dpg.add_text("Your Input")
     dpg.add_text("Click on the Record button to start,\n and the Stop button to stop.")
