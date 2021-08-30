@@ -147,6 +147,7 @@ def record_mic(sender, app_data, user_data):
                     input=True,
                     frames_per_buffer=buffer_size)
 
+
     if recording_counter == 0:
         recording_counter = 1
     elif recording_counter != 0:
@@ -194,7 +195,7 @@ def stop_mic(sender, data):
     """Creates buttons specific to the mic_file_name (e.g.: YourInput1.wav, YourInput2.wav...) upon ending recording."""
 
     global recording_counter, group_id
-
+         
     set_item_theme(r_button, series_theme)
     set_item_theme(s_button, not_enabled)
     configure_item(rec_status, show=True, default_value = "Recording completed! \nPlease extract your pitch.")
@@ -249,6 +250,7 @@ def your_pitch(sender, app_data, user_data):
 
     global model_pitches
 
+
     configure_item(rec_status, show=True, default_value = "Extracting your pitch...")
 
     signal = basic.SignalObj(user_data[2])
@@ -279,6 +281,10 @@ def your_pitch(sender, app_data, user_data):
 
     except IndexError:
         configure_item(rec_status, default_value = "Recording too long. \nPlease try again.")
+        delete_item(group_id)
+
+    except FileNotFoundError:
+        configure_item(rec_status, default_value = "Mic input not detected. \nPlease try again.")
         delete_item(group_id)
 
 def delete_mic_graph(sender, app_data, user_data):
