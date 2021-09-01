@@ -18,8 +18,8 @@ import os
 
 setup_viewport()
 set_viewport_title(title='Welcome')
-set_viewport_width(1600)
-set_viewport_height(900)
+set_viewport_width(1300)
+set_viewport_height(750)
 setup_registries()
 
 
@@ -265,11 +265,6 @@ def your_pitch(sender, app_data, user_data):
         times = list(range(0, len(mic_pitches), 1))
         mic_file_name2 = mic_file_name.replace(".wav", "")
 
-        dpg.fit_axis_data(x_axis)
-        dpg.fit_axis_data(y_axis)
-        dpg.set_axis_limits_auto(x_axis)
-        dpg.set_axis_limits(y_axis, ymin=0, ymax=500)
-
         configure_item(rec_status, show=True, default_value = "Your pitch extracted!")
         dpg.add_line_series(times, mic_pitches, label = mic_file_name2, parent=y_axis)
         dpg.add_button(label="Delete " + mic_file_name2, user_data = [dpg.last_item(), group_id], parent=dpg.last_item(), callback=delete_mic_graph)
@@ -304,7 +299,7 @@ def delete_recording(sender, app_data, user_data):
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
     
-with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
+with dpg.window(label="User NavBar", width=299, height=750, pos=[0,0]) as user_nav_bar:
     welcome = dpg.add_text("Tone Training")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
@@ -343,7 +338,7 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
 ###### Plot Settings ######
 
-with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
+with dpg.window(label="Pitch Plot", width=1001, height=750, pos=[300,0]) as plot_window:
 
     tips = dpg.add_text("   Here are some basic tips:")
     dpg.add_text("      1. Explore the graph with your mouse! Zoom in and out, move up and down.")
@@ -351,7 +346,7 @@ with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot
     dpg.add_text("      3. Right click on the legend to delete a plot you are done with.")
     dpg.add_spacing(count=5)
 
-    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=450, width=950):
         dpg.add_plot_legend()
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
