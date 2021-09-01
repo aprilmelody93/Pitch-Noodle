@@ -18,8 +18,8 @@ import os
 
 setup_viewport()
 set_viewport_title(title='Welcome')
-set_viewport_width(1300)
-set_viewport_height(750)
+set_viewport_width(900)
+set_viewport_height(600)
 setup_registries()
 
 
@@ -299,7 +299,7 @@ def delete_recording(sender, app_data, user_data):
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
     
-with dpg.window(label="User NavBar", width=299, height=750, pos=[0,0]) as user_nav_bar:
+with dpg.window(label="User NavBar", width=299, height=600, pos=[0,0]) as user_nav_bar:
     welcome = dpg.add_text("Tone Training")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
@@ -338,7 +338,7 @@ with dpg.window(label="User NavBar", width=299, height=750, pos=[0,0]) as user_n
 
 ###### Plot Settings ######
 
-with dpg.window(label="Pitch Plot", width=1001, height=750, pos=[300,0]) as plot_window:
+with dpg.window(label="Pitch Plot", width=600, height=600, pos=[300,0]) as plot_window:
 
     tips = dpg.add_text("   Here are some basic tips:")
     dpg.add_text("      1. Explore the graph with your mouse! Zoom in and out, move up and down.")
@@ -346,7 +346,7 @@ with dpg.window(label="Pitch Plot", width=1001, height=750, pos=[300,0]) as plot
     dpg.add_text("      3. Right click on the legend to delete a plot you are done with.")
     dpg.add_spacing(count=5)
 
-    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=450, width=950):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=500, width=600):
         dpg.add_plot_legend()
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
