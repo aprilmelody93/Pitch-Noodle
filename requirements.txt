@@ -4,11 +4,10 @@
 
 numpy
 AMFM-decompy
-Aubio
-dtwalign
+aubio
 DearPyGUI
 PyAudio
 playsound
-Wave
 tempfile
 os
+Wave
