@@ -2,6 +2,7 @@
 # to install them, type this into your console:
 # pip -r requirements.txt 
 
+Python >=3.7 
 numpy
 pYAAPT
 Aubio
