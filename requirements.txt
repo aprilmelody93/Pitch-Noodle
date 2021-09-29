@@ -8,6 +8,5 @@ aubio
 DearPyGUI
 PyAudio
 playsound
-tempfile
 os
 Wave
