@@ -8,5 +8,4 @@ aubio
 DearPyGUI
 PyAudio
 playsound
-os
 Wave
