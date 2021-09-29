@@ -8,7 +8,6 @@ Here are a list of requirements needed to run the program. No specific versions 
 * numpy
 * AMFM-decompy
 * aubio
-* dtwalign
 * DearPyGUI
 * PyAudio
 * playsound
