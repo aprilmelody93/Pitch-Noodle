@@ -1,6 +1,6 @@
-# IntonationApp (User's Guide)
+# Pitch Noodle (User's Guide)
 
-This is a simple intonation app that extracts, draws, and overlays a learner's pitch on top of a model speaker's pitch. The goal of this app is to help language learners recognize the difference in pitch movements in order to better help them learn the pitch of the language they are learning. 
+This is a simple intonation app that extracts, draws, and overlays a learner's pitch on top of a model speaker's pitch. The goal of this app is to help language learners recognize the difference in pitch movements in order to better help them learn the pitch of the language they are learning. For monosyllabic or short tokens, use Pitch training; for longer sentences, use Intonation training.
 
 # Requirements 
 Here are a list of requirements needed to run the program. No specific versions needed; just download the latest ones. These requirements are also listed in Requirements.txt
@@ -14,18 +14,21 @@ Here are a list of requirements needed to run the program. No specific versions 
 * Wave
 
 # Running as .exe file (recommended)
-In the dist folder, click on the main.exe file. This should run the application on your computer without the need to install anything else. 
+First download this as a zip file and extract it to your computer.
+* If working with pitch, click on the Pitch training folder then lauch the the Pitch.exe file. 
+* If working with intonation, click on the Intonation training folder then launch the Intonation.exe file. 
+This should run the application on your computer without the need to install anything else. 
 Note: This does not work on a Mac and has only been tested on Windows 10. 
 
 # Running as .py file
-The only file you need to run in main.py. Use pip to install all required third-party packages listed above: `pip -r requirements.txt`
+The only file you need to run in Pitch.py or Intonation.py. Use pip to install all required third-party packages listed above: `pip -r requirements.txt`
 
 If using an IDE such as Visual Studio Code or Sublime, simply run the main.py file
 
 If you don't have an IDE: 
 * Open up the terminal on your computer
 * cd to the appropirate folder (e.g. cd /Users/aprilmelody/Desktop/PythonIntonationApp)
-* type in python main.py 
+* type in python Pitch.py 
 
 # Tutorial Walkthrough
 Using the application is simple! Here's a step-by-step:
@@ -42,7 +45,7 @@ Tips:
 * Right click on the graph for a whole bunch of other options
 
 # Known Issues
-* If your recording is too long, the app will ask you to re-record your audio file
+* Longer sentences are tricky and the application might not pick up every voiced segment
 
 # Future Work
 * A vline series that shows users at which point of the pitch contour they are at when playing the file
