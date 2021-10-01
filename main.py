@@ -17,9 +17,9 @@ import os
 ##### Global theme and setup #####
 
 setup_viewport()
-set_viewport_title(title='Welcome')
-set_viewport_width(1300)
-set_viewport_height(750)
+set_viewport_title(title='Welcome to Pitch Noodle!')
+set_viewport_width(1900)
+set_viewport_height(1100)
 setup_registries()
 
 
@@ -28,17 +28,18 @@ with dpg.font_registry():
     secondary_font = dpg.add_font("fonts\Playfair.ttf", 30)
 
 with dpg.theme(default_theme=True) as series_theme:
-    dpg.add_theme_color(dpg.mvThemeCol_Button, (245, 184, 65), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (213, 146, 11), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
+    add_theme_color(dpg.mvThemeCol_Button, (255,217,82), category=dpg.mvThemeCat_Core)
+    add_theme_color(dpg.mvThemeCol_ButtonHovered, (213, 146, 11), category=dpg.mvThemeCat_Core)
+    add_theme_style(dpg.mvPlotStyleVar_LineWeight, 5, category=dpg.mvThemeCat_Plots)
     # dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, 20, category=dpg.mvThemeCat_Plots)
 
 with dpg.theme() as not_enabled:
-    dpg.add_theme_color(dpg.mvThemeCol_Button, (213, 146, 11), category=dpg.mvThemeCat_Core)
-    dpg.add_theme_color(dpg.mvThemeCol_Text, (97, 66, 5), category=dpg.mvThemeCat_Core)
+    add_theme_color(dpg.mvThemeCol_Button, (213, 146, 11), category=dpg.mvThemeCat_Core)
+    add_theme_color(dpg.mvThemeCol_Text, (97, 66, 5), category=dpg.mvThemeCat_Core)
+    
 
 with dpg.value_registry():
-    m_pitches = dpg.add_float_vect_value(default_value=[])
+    m_pitches = add_float_vect_value(default_value=[])
 
 ##### Global Variables and temporary directory######
 model_pitches = None # Global var of model pitches as list
@@ -61,15 +62,15 @@ def plot_model(sender, app_data, user_data):
     model_pitches = user_data[2]
     groupmod_id = user_data[3]
 
-    dpg.fit_axis_data(x_axis)
-    dpg.fit_axis_data(y_axis)
-    dpg.set_axis_limits_auto(x_axis)
-    dpg.set_axis_limits(y_axis, ymin=0, ymax=500)
+    fit_axis_data(x_axis)
+    fit_axis_data(y_axis)
+    set_axis_limits_auto(x_axis)
+    set_axis_limits(y_axis, ymin=0, ymax=500)
 
     times = list(range(0, len(model_pitches), 1))
     configure_item(status, show = True, default_value = "Extracting model pitch...")
-    dpg.add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
-    dpg.add_button(label="Delete " + model_file_name, user_data = [dpg.last_item(), model_file_name, groupmod_id], parent=dpg.last_item(), callback=delete_mod_graph)
+    add_line_series(times, model_pitches, label=model_file_name, parent=y_axis)
+    add_button(label="Delete " + model_file_name, user_data = [dpg.last_item(), model_file_name, groupmod_id], parent=dpg.last_item(), callback=delete_mod_graph)
     configure_item(status, show = True, default_value = "Model pitch extracted!")
 
 def delete_mod_graph(sender, app_data, user_data):
@@ -114,15 +115,19 @@ def upload_file_cb(sender, app_data, user_data):
 
     groupmod_id = None
 
-    with group(parent = user_nav_bar, before=record) as groupmod_id:
-        configure_item(status, show=False)
-        dpg.add_text(model_file_name)
-        dpg.add_button(label='Play', callback=play_file, user_data=file_path)
-        dpg.add_same_line()
-        dpg.add_button(label="Extract Model Pitch", callback = plot_model, user_data = [model_file_name, file_path, model_pitches, groupmod_id])
-        dpg.add_same_line()
-        dpg.add_button(label="Delete", callback = delete_upload, user_data = [model_file_name, file_path, model_pitches, groupmod_id])        
-        dpg.add_spacing(count=3)
+    with group(parent = user_nav_bar) as groupmod_id:
+        configure_item(status, default_value = "File uploaded!")
+        configure_item(rec_sep1, show = True)
+        add_text(model_file_name)
+        add_button(label='Play', callback=play_file, user_data=file_path)
+        add_same_line()
+        add_button(label="Extract Model Pitch", callback = plot_model, user_data = [model_file_name, file_path, model_pitches, groupmod_id])
+        add_same_line()
+        add_button(label="Delete", callback = delete_upload, user_data = [model_file_name, file_path, model_pitches, groupmod_id])        
+        add_spacing(count=3)
+
+    configure_item(instructions, default_value = "Feel free to upload another audio file!")
+    configure_item(upload_button, label = "Upload another file")
 
 ##### Mic Pitch Callbacks ######
 
@@ -199,21 +204,21 @@ def stop_mic(sender, data):
     set_item_theme(r_button, series_theme)
     set_item_theme(s_button, not_enabled)
     configure_item(rec_status, show=True, default_value = "Recording completed! \nPlease extract your pitch.")
-    configure_item(mic_sep1, show = True)
+    configure_item(mic_sep2, show = True)
 
     mic_file_name = f'Your Input {recording_counter}.wav'
     mic_file_path = os.path.join(tmpdir.name, mic_file_name)
 
     group_id = None
 
-    with group(parent=user_nav_bar) as group_id:
-        dpg.add_text(mic_file_name)
-        dpg.add_button(label="Play", callback = play_your_file, user_data = mic_file_path)
-        dpg.add_same_line()
-        dpg.add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
-        dpg.add_same_line()
-        dpg.add_button(label="Delete", callback= delete_recording, user_data=[mic_file_name, group_id, mic_file_path])
-        dpg.add_spacing(count=5)
+    with group(parent=user_nav_bar2) as group_id:
+        add_text(mic_file_name)
+        add_button(label="Play", callback = play_your_file, user_data = mic_file_path)
+        add_same_line()
+        add_button(label="Extract Your Pitch", callback= your_pitch, user_data=[mic_file_name, group_id, mic_file_path])
+        add_same_line()
+        add_button(label="Delete", callback= delete_recording, user_data=[mic_file_name, group_id, mic_file_path])
+        add_spacing(count=5)
 
 
 def play_your_file(sender, app_data, user_data):
@@ -299,66 +304,76 @@ def delete_recording(sender, app_data, user_data):
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
     
-with dpg.window(label="User NavBar", width=299, height=750, pos=[0,0]) as user_nav_bar:
-    welcome = dpg.add_text("Tone Training")
-    instructions = dpg.add_text("To start, please upload an audio file.")
-    dpg.add_spacing(count=3)
-    upload_button = dpg.add_button(label='Upload file', callback= lambda: dpg.show_item(file_dialog_id))
-    dpg.add_spacing(count=3)
-    dpg.add_separator() 
-    status = dpg.add_text(show = False)
-    show_model_name = dpg.add_text(show=False)
-    play_model = dpg.add_button(show = False, label="Play", callback=play_file)
-    dpg.add_same_line()
-    model_pitch = dpg.add_button(label="Extract Model Pitch", user_data=m_pitches, callback=plot_model, show=False)
-    dpg.add_separator() 
-    dpg.add_spacing(count=3)
+with dpg.window(label="Upload Pitch", width=499, height=525, pos=[0,0]) as user_nav_bar:
+    welcome2 = dpg.add_text("Model Input")
+    instructions = dpg.add_text("Please upload an audio file to get started.")
+    add_spacing(count=3)
+    upload_button = add_button(label='Upload file', callback= lambda: show_item(file_dialog_id))
+    add_spacing(count=3)
+    add_separator() 
+    status = add_text(show = False)
+    rec_sep1 = add_separator(show = False) 
+    show_model_name = add_text(show=False)
+    play_model = add_button(show = False, label="Play", callback=play_file)
+    add_same_line()
+    model_pitch = add_button(label="Extract Model Pitch", user_data=m_pitches, callback=plot_model, show=False)
+    add_spacing(count=3)
 
-    record = dpg.add_text("Your Input")
-    dpg.add_text("Click on the Record button to start,\nand the Stop button to stop.")
-    dpg.add_spacing(count=3)
-    r_button = dpg.add_button(label="Record", callback = record_mic)
-    dpg.add_same_line()
-    s_button = dpg.add_button(label="Stop", callback = stop_mic)
-    dpg.add_spacing(count=3)
-    rec_status = dpg.add_text(show = False)
-    dpg.add_spacing(count=3)
-    mic_sep1 = dpg.add_separator(show = False) 
+with dpg.window(label="Record Pitch", width=499, height=535, pos=[0,525]) as user_nav_bar2:
+    record = add_text("Your Input")
+    record_ins = add_text("Click on the Record button to start,\nand the Stop button to stop.")
+    add_spacing(count=3)
+    r_button = add_button(label="Record", callback = record_mic)
+    add_same_line()
+    s_button = add_button(label="Stop", callback = stop_mic)
+    add_spacing(count=3)
+    mic_sep1 = add_separator(show = True) 
+    rec_status = add_text(show = False)
+    add_spacing(count=3)
+    mic_sep2 = add_separator(show = False) 
 
     with dpg.theme() as theme_id:
-        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (255, 255, 255), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (173, 217, 244), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (173, 217, 244), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_Text, (0, 0, 0), category=dpg.mvThemeCat_Core)
+        add_theme_color(mvThemeCol_WindowBg, (255, 255, 255), category=mvThemeCat_Core)
+        add_theme_color(mvThemeCol_TitleBg, (245, 184, 65), category=mvThemeCat_Core)
+        add_theme_color(mvThemeCol_TitleBgActive, (245, 184, 65), category=mvThemeCat_Core)
+        add_theme_color(mvThemeCol_Text, (0, 0, 0), category=mvThemeCat_Core)
+
   
-    dpg.set_item_theme(user_nav_bar, theme_id)
-    dpg.set_item_theme(s_button, not_enabled)         
-    dpg.set_item_font(welcome, secondary_font)
-    dpg.set_item_font(record, secondary_font)
+    set_item_theme(user_nav_bar, theme_id)
+    set_item_theme(user_nav_bar2, theme_id)
+    set_item_theme(s_button, not_enabled)         
+    set_item_font(welcome2, secondary_font)
+    set_item_font(record, secondary_font)
 
 ###### Plot Settings ######
 
-with dpg.window(label="Pitch Plot", width=1001, height=750, pos=[300,0]) as plot_window:
+with dpg.window(label="Pitch Plot", width=1399, height=1100, pos=[500,0]) as plot_window:
+    add_spacing(count=5)
+    tips = add_text("          Here are some basic tips:")
+    text1 = add_text("          Explore with your mouse! Zoom in, zoom out, and drag the graph around. Have fun!")
+    text2 = add_text("          Left click on the legend to show/hide a plot; right click to delete a plot.")
+    add_spacing(count=10)
 
-    tips = dpg.add_text("   Here are some basic tips:")
-    dpg.add_text("      1. Explore the graph with your mouse! Zoom in and out, move up and down.")
-    dpg.add_text("      2. Left click on the legend to show/hide a plot.")
-    dpg.add_text("      3. Right click on the legend to delete a plot you are done with.")
-    dpg.add_spacing(count=5)
-
-    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=450, width=950):
-        dpg.add_plot_legend()
-        x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
-        y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = False)
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=800, width=1300, pos = [50, 185]):
+        add_plot_legend()
+        x_axis = add_plot_axis(mvXAxis, label="time (ms)", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
+        y_axis = add_plot_axis(mvYAxis, label="pitch (Hz)", no_tick_labels = False)
 
     with dpg.theme() as theme_plot:
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, (71, 108, 155), category=dpg.mvThemeCat_Core)
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, (71, 108, 155), category=dpg.mvThemeCat_Core)
-    
-    dpg.set_item_theme(plot_window, theme_plot)
-    dpg.set_item_font(tips, secondary_font)
+        add_theme_color(mvThemeCol_TitleBg, (245, 184, 65), category=mvThemeCat_Core)
+        add_theme_color(mvThemeCol_TitleBgActive, (245, 184, 65), category=mvThemeCat_Core)
+        
 
-dpg.start_dearpygui()
+    with dpg.theme() as heading_color:
+        heading = add_theme_color(dpg.mvThemeCol_Text, (245, 184, 65), category=dpg.mvThemeCat_Core)
+        heading2 = add_theme_color(dpg.mvThemeCol_Text, (255,255,255), category=dpg.mvThemeCat_Core)
+    
+    set_item_theme(plot_window, theme_plot)
+    set_item_theme(tips, heading)
+    set_item_theme(text1, heading2)
+    set_item_theme(text2, heading2)
+
+start_dearpygui()
 
 # after app is done, force cleanup of temp folder
 print("Trying to clean up temp folder", tmpdir.name)
