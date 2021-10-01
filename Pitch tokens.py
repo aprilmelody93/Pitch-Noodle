@@ -18,8 +18,8 @@ import os
 
 setup_viewport()
 set_viewport_title(title='Welcome to Pitch Noodle!')
-set_viewport_width(1900)
-set_viewport_height(1100)
+set_viewport_width(1600)
+set_viewport_height(900)
 setup_registries()
 
 
@@ -304,7 +304,7 @@ def delete_recording(sender, app_data, user_data):
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
     
-with dpg.window(label="Upload Pitch", width=499, height=525, pos=[0,0]) as user_nav_bar:
+with dpg.window(label="Upload Pitch", width=319, height=415, pos=[0,0]) as user_nav_bar:
     welcome2 = dpg.add_text("Model Input")
     instructions = dpg.add_text("Please upload an audio file to get started.")
     add_spacing(count=3)
@@ -319,7 +319,7 @@ with dpg.window(label="Upload Pitch", width=499, height=525, pos=[0,0]) as user_
     model_pitch = add_button(label="Extract Model Pitch", user_data=m_pitches, callback=plot_model, show=False)
     add_spacing(count=3)
 
-with dpg.window(label="Record Pitch", width=499, height=535, pos=[0,525]) as user_nav_bar2:
+with dpg.window(label="Record Pitch", width=319, height=450, pos=[0,415]) as user_nav_bar2:
     record = add_text("Your Input")
     record_ins = add_text("Click on the Record button to start,\nand the Stop button to stop.")
     add_spacing(count=3)
@@ -347,14 +347,14 @@ with dpg.window(label="Record Pitch", width=499, height=535, pos=[0,525]) as use
 
 ###### Plot Settings ######
 
-with dpg.window(label="Pitch Plot", width=1399, height=1100, pos=[500,0]) as plot_window:
+with dpg.window(label="Pitch Plot",  width=1265, height=900, pos=[320,0]) as plot_window:
     add_spacing(count=5)
     tips = add_text("          Here are some basic tips:")
     text1 = add_text("          Explore with your mouse! Zoom in, zoom out, and drag the graph around. Have fun!")
     text2 = add_text("          Left click on the legend to show/hide a plot; right click to delete a plot.")
     add_spacing(count=10)
 
-    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=800, width=1300, pos = [50, 185]):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1175, pos = [50, 185]):
         add_plot_legend()
         x_axis = add_plot_axis(mvXAxis, label="time (ms)", no_tick_labels = True, no_gridlines=True, no_tick_marks=True)
         y_axis = add_plot_axis(mvYAxis, label="pitch (Hz)", no_tick_labels = False)
