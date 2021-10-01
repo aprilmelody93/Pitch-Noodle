@@ -275,7 +275,7 @@ def delete_mic_graph(sender, app_data, user_data):
 with dpg.file_dialog(directory_selector=False, show = False, callback=upload_file_cb) as file_dialog_id:
     dpg.add_file_extension(".wav")
     
-with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_nav_bar:
+with dpg.window(label="User NavBar", width=319, height=900, pos=[0,0]) as user_nav_bar:
     welcome = dpg.add_text("Model Input")
     instructions = dpg.add_text("To start, please upload an audio file.")
     dpg.add_spacing(count=3)
@@ -313,15 +313,14 @@ with dpg.window(label="User NavBar", width=299, height=900, pos=[0,0]) as user_n
 
 ###### Plot Settings ######
 
-with dpg.window(label="Pitch Plot", width=1250, height=900, pos=[300,0]) as plot_window:
+with dpg.window(label="Pitch Plot",  width=1265, height=900, pos=[320,0]) as plot_window:
+    add_spacing(count=5)
+    tips = add_text("      Here are some basic tips:")
+    add_text("          Explore with your mouse! Zoom in, zoom out, and drag the graph around. Have fun!")
+    add_text("          Left click on the legend to show/hide a plot; right click to delete a plot.")
+    add_spacing(count=10)
 
-    tips = dpg.add_text("Here are some basic tips:")
-    dpg.add_text("1. Scroll with your mouse button or click and drag left and right to explore.")
-    dpg.add_text("2.Left click on the legend to show/hide.")
-    dpg.add_text("3. Right click on the legend to delete.")
-    dpg.add_spacing(count=5)
-
-    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1200):
+    with dpg.plot(label="Intonation Plot", equal_aspects = True, height=600, width=1175, pos = [50, 185]):
         dpg.add_plot_legend()
         x_axis = dpg.add_plot_axis(dpg.mvXAxis, label="time (s)", no_tick_labels = True, no_gridlines=True)
         y_axis = dpg.add_plot_axis(dpg.mvYAxis, label="pitch (Hz)", no_tick_labels = True)
