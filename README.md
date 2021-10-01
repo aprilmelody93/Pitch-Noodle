@@ -5,17 +5,13 @@ This is a simple intonation app that extracts, draws, and overlays a learner's p
 # Requirements 
 Here are a list of requirements needed to run the program. No specific versions needed; just download the latest ones. These requirements are also listed in Requirements.txt
 
-* Python 3.7 or higher
 * numpy
-* pYAAPT
-* Aubio
-* dtwalign
+* AMFM-decompy
+* aubio
 * DearPyGUI
 * PyAudio
 * playsound
 * Wave
-* tempfile
-* os
 
 # Running as .exe file (recommended)
 In the dist folder, click on the main.exe file. This should run the application on your computer without the need to install anything else. 
