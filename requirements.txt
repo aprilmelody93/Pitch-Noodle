@@ -9,4 +9,3 @@ DearPyGUI
 PyAudio
 playsound
 Wave
-sudo apt install portaudio19-dev
