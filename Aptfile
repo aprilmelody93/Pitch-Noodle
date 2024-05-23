@@ -3,3 +3,5 @@ portaudio19-dev
 libportaudio2
 libportaudiocpp0
 ffmpeg
+libfftw3-dev
+libsndfile1-dev
