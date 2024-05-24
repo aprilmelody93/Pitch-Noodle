@@ -4,7 +4,7 @@
 
 numpy
 AMFM-decompy
-aubio==0.4.9
+aubio==0.4.9 --verbose
 DearPyGUI
 PyAudio
 playsound
