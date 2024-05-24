@@ -11,4 +11,3 @@ libavformat-dev
 libavutil-dev
 libavfilter-dev
 libavdevice-dev
-libavresample-dev
