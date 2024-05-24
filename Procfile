@@ -1,1 +1,1 @@
-web: python pitch.py
+web: python src/pitch.py
